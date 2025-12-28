@@ -1,5 +1,4 @@
 import { useEffect, useRef } from "react";
-import { ArrowRight } from "lucide-react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -13,24 +12,26 @@ const ServicesStack = () => {
   const services = [
     {
       name: "Blink",
-      description: "Lightning-fast prototyping and MVP development. We transform your ideas into tangible products within days, not months.",
-      features: ["Rapid Prototyping", "MVP Development", "Design Sprints"],
+      bgClass: "bg-service-blink",
+      textClass: "text-primary-foreground",
+      height: "h-[200px] md:h-[260px]",
     },
     {
       name: "Build",
-      description: "Full-scale development and implementation. From web apps to e-commerce, we build scalable solutions that grow with you.",
-      features: ["Web Development", "E-commerce", "Custom Solutions"],
+      bgClass: "bg-service-build",
+      textClass: "text-primary-foreground",
+      height: "h-[60px] md:h-[80px]",
     },
     {
       name: "Boom",
-      description: "Launch, scale, and grow your digital presence. We help you reach your audience and convert visitors into customers.",
-      features: ["Growth Strategy", "Performance Marketing", "Analytics"],
+      bgClass: "bg-service-boom",
+      textClass: "text-muted-foreground",
+      height: "h-[50px] md:h-[60px]",
     },
   ];
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      // Heading animation
       gsap.fromTo(
         headingRef.current,
         { opacity: 0, y: 40 },
@@ -47,12 +48,11 @@ const ServicesStack = () => {
         }
       );
 
-      // Cards staggered animation
       const cards = cardsRef.current?.children;
       if (cards) {
         gsap.fromTo(
           cards,
-          { opacity: 0, y: 60, scale: 0.98 },
+          { opacity: 0, y: 60, scale: 0.95 },
           {
             opacity: 1,
             y: 0,
@@ -74,51 +74,32 @@ const ServicesStack = () => {
   }, []);
 
   return (
-    <section ref={sectionRef} id="services" className="py-24 px-6">
-      <div className="container mx-auto">
-        <div className="text-center mb-16">
-          <h2
-            ref={headingRef}
-            className="text-4xl md:text-6xl font-heading font-bold mb-4 opacity-0"
-          >
-            services
-          </h2>
-          <p className="text-muted-foreground text-lg">what we do ?</p>
-        </div>
+    <section ref={sectionRef} id="services" className="py-16 px-6">
+      <div className="container mx-auto max-w-4xl">
+        <h2
+          ref={headingRef}
+          className="text-2xl md:text-3xl font-heading font-bold text-center mb-10 opacity-0"
+        >
+          Our Services
+        </h2>
 
-        <div ref={cardsRef} className="max-w-4xl mx-auto space-y-6">
-          {services.map((service) => (
+        <div ref={cardsRef} className="space-y-0">
+          {services.map((service, index) => (
             <div
               key={service.name}
-              className="group bg-background border-2 border-foreground rounded-3xl p-6 md:p-8 flex flex-col md:flex-row gap-6 items-stretch hover-lift opacity-0 cursor-pointer"
+              className={`service-card ${service.bgClass} ${service.textClass} ${service.height} flex items-center justify-center px-8 opacity-0 cursor-pointer`}
+              style={{
+                borderRadius:
+                  index === 0
+                    ? "1.5rem 1.5rem 0 0"
+                    : index === services.length - 1
+                    ? "0 0 1.5rem 1.5rem"
+                    : "0",
+              }}
             >
-              {/* Dark Icon Box */}
-              <div className="bg-service-blink rounded-2xl p-6 md:p-8 flex flex-col justify-between min-w-[200px] md:min-w-[240px] min-h-[180px] md:min-h-[200px]">
-                <h3 className="text-2xl md:text-3xl font-heading font-bold text-primary-foreground">
-                  {service.name}
-                </h3>
-                <button className="flex items-center gap-2 text-primary-foreground/80 hover:text-primary-foreground transition-colors text-sm mt-auto group/btn">
-                  Learn more...
-                  <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-                </button>
-              </div>
-
-              {/* Content Area */}
-              <div className="flex-1 flex flex-col justify-between py-2">
-                <p className="text-muted-foreground text-base md:text-lg leading-relaxed mb-4">
-                  {service.description}
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {service.features.map((feature) => (
-                    <span
-                      key={feature}
-                      className="text-xs bg-muted px-3 py-1.5 rounded-full text-muted-foreground"
-                    >
-                      {feature}
-                    </span>
-                  ))}
-                </div>
-              </div>
+              <h3 className="text-xl md:text-2xl font-heading font-bold">
+                {service.name}
+              </h3>
             </div>
           ))}
         </div>
