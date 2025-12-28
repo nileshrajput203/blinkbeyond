@@ -10,9 +10,9 @@ const Footer = () => {
   const contentRef = useRef<HTMLDivElement>(null);
 
   const navLinks = [
-    { label: "Home", href: "#" },
+    { label: "HOME", href: "#" },
     { label: "About", href: "#about" },
-    { label: "Contact", href: "#contact" },
+    { label: "contact", href: "#contact" },
   ];
 
   const socialLinks = [
@@ -58,55 +58,48 @@ const Footer = () => {
       id="contact"
       className="bg-footer text-footer-foreground py-16 px-6 relative"
     >
-      {/* Back to top button */}
-      <button
-        onClick={scrollToTop}
-        className="absolute top-6 right-6 w-12 h-12 rounded-full bg-footer-foreground/10 flex items-center justify-center hover:bg-footer-foreground/20 transition-colors duration-200 group"
-        aria-label="Back to top"
-      >
-        <ArrowUp className="w-5 h-5 text-footer-foreground group-hover:scale-110 group-hover:-translate-y-0.5 transition-transform duration-200" />
-      </button>
-
       <div className="container mx-auto">
-        <div ref={contentRef} className="flex flex-col items-center gap-10">
+        <div ref={contentRef} className="flex flex-col items-center gap-8">
           {/* Logo */}
           <div className="flex items-center opacity-0">
-            <span className="text-2xl font-heading font-bold tracking-tight">
+            <span className="text-2xl font-heading font-bold tracking-tight flex items-center gap-2">
               <span className="text-footer-foreground">▸▸</span>
-              <span className="text-footer-foreground ml-1">Blink</span>
-              <span className="text-footer-foreground/60">Beyond</span>
+              <span>
+                <span className="text-footer-foreground">Blink</span>
+                <span className="text-footer-foreground/60">Beyond</span>
+              </span>
             </span>
           </div>
 
           {/* Navigation */}
-          <nav className="flex items-center gap-8 opacity-0">
+          <nav className="flex items-center gap-12 opacity-0">
             {navLinks.map((link) => (
               <a
                 key={link.label}
                 href={link.href}
-                className="text-footer-foreground/80 hover:text-footer-foreground transition-colors duration-200 text-sm uppercase tracking-wider"
+                className="text-footer-foreground/70 hover:text-footer-foreground transition-colors duration-200 text-sm tracking-wide"
               >
                 {link.label}
               </a>
             ))}
           </nav>
 
-          {/* Social Links */}
-          <div className="flex items-center gap-6 bg-secondary/50 px-6 py-3 rounded-full opacity-0">
+          {/* Social Links Pill */}
+          <div className="flex items-center gap-5 bg-secondary/60 px-8 py-4 rounded-full opacity-0">
             {socialLinks.map((social) => (
               <a
                 key={social.label}
                 href={social.href}
-                className="text-footer-foreground/80 hover:text-footer-foreground transition-colors duration-200"
+                className="text-footer-foreground/80 hover:text-footer-foreground hover:scale-110 transition-all duration-200"
                 aria-label={social.label}
               >
-                <social.icon size={22} />
+                <social.icon size={24} />
               </a>
             ))}
           </div>
 
           {/* Copyright */}
-          <p className="text-footer-foreground/60 text-sm opacity-0">
+          <p className="text-footer-foreground font-medium text-sm opacity-0 mt-4">
             @2025 blinkbeyond
           </p>
         </div>
