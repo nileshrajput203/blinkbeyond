@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
-import { Linkedin, Facebook, Instagram, Phone, ArrowUp } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Linkedin, Facebook, Instagram, Phone } from "lucide-react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -10,9 +11,9 @@ const Footer = () => {
   const contentRef = useRef<HTMLDivElement>(null);
 
   const navLinks = [
-    { label: "HOME", href: "#" },
-    { label: "About", href: "#about" },
-    { label: "contact", href: "#contact" },
+    { label: "HOME", href: "/" },
+    { label: "About", href: "/about" },
+    { label: "contact", href: "/#contact" },
   ];
 
   const socialLinks = [
@@ -21,10 +22,6 @@ const Footer = () => {
     { icon: Instagram, href: "#", label: "Instagram" },
     { icon: Phone, href: "#", label: "WhatsApp" },
   ];
-
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -61,7 +58,7 @@ const Footer = () => {
       <div className="container mx-auto">
         <div ref={contentRef} className="flex flex-col items-center gap-8">
           {/* Logo */}
-          <div className="flex items-center opacity-0">
+          <Link to="/" className="flex items-center opacity-0">
             <span className="text-2xl font-heading font-bold tracking-tight flex items-center gap-2">
               <span className="text-footer-foreground">▸▸</span>
               <span>
@@ -69,18 +66,18 @@ const Footer = () => {
                 <span className="text-footer-foreground/60">Beyond</span>
               </span>
             </span>
-          </div>
+          </Link>
 
           {/* Navigation */}
           <nav className="flex items-center gap-12 opacity-0">
             {navLinks.map((link) => (
-              <a
+              <Link
                 key={link.label}
-                href={link.href}
+                to={link.href}
                 className="text-footer-foreground/70 hover:text-footer-foreground transition-colors duration-200 text-sm tracking-wide"
               >
                 {link.label}
-              </a>
+              </Link>
             ))}
           </nav>
 
