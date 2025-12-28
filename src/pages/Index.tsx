@@ -1,11 +1,7 @@
 import { useState } from "react";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
-import ServicesStack from "@/components/ServicesStack";
 import TrustedBy from "@/components/TrustedBy";
-import AboutServices from "@/components/AboutServices";
-import ProjectsShowcase from "@/components/ProjectsShowcase";
-import Reviews from "@/components/Reviews";
 import OurWork from "@/components/OurWork";
 import Footer from "@/components/Footer";
 import Preloader from "@/components/Preloader";
@@ -24,11 +20,7 @@ const Index = () => {
         <Header />
         <main>
           <Hero />
-          <ServicesStack />
           <TrustedBy />
-          <AboutServices />
-          <ProjectsShowcase />
-          <Reviews />
           <OurWork />
         </main>
         <Footer />
