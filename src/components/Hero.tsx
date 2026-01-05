@@ -3,8 +3,9 @@ import ScrollExpandMedia from "@/components/ui/scroll-expansion-hero";
 const Hero = () => {
   return (
     <ScrollExpandMedia
-      mediaType="image"
-      mediaSrc="https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=1920&auto=format&fit=crop"
+      mediaType="video"
+      mediaSrc="https://videos.pexels.com/video-files/3129671/3129671-uhd_2560_1440_30fps.mp4"
+      posterSrc="https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=1920&auto=format&fit=crop"
       bgImageSrc="https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=1920&auto=format&fit=crop"
       title="BLINK BEYOND"
       date="Creative Agency"
