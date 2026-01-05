@@ -225,7 +225,7 @@ export function MagneticContainer({
       >
         <div
           ref={circleRef}
-          className="absolute rounded-full bg-primary overflow-hidden"
+          className="absolute rounded-full bg-primary overflow-hidden shadow-[0_0_40px_15px_hsl(var(--primary)/0.5),0_0_80px_30px_hsl(var(--primary)/0.3)]"
           style={{
             width: circleSize,
             height: circleSize,
