@@ -29,6 +29,7 @@ const ScrollExpandMedia = ({
 }: ScrollExpandMediaProps) => {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [animationComplete, setAnimationComplete] = useState(false);
+  const [canScrollPast, setCanScrollPast] = useState(false);
   const [touchStartY, setTouchStartY] = useState(0);
   const [isMobileState, setIsMobileState] = useState(false);
 
@@ -37,18 +38,33 @@ const ScrollExpandMedia = ({
   useEffect(() => {
     setScrollProgress(0);
     setAnimationComplete(false);
+    setCanScrollPast(false);
   }, [mediaType]);
 
   useEffect(() => {
-    if (animationComplete) return;
+    // If we can scroll past, don't intercept any events
+    if (canScrollPast) return;
 
     const handleWheel = (e: WheelEvent) => {
+      // If animation is complete and user scrolls down, allow scrolling to next section
+      if (animationComplete && e.deltaY > 0) {
+        setCanScrollPast(true);
+        return; // Let the scroll happen naturally
+      }
+
+      // If animation is complete and user scrolls up, stay locked
+      if (animationComplete && e.deltaY < 0) {
+        e.preventDefault();
+        return;
+      }
+
+      // During animation, prevent default and control progress
       e.preventDefault();
-      const scrollDelta = e.deltaY * 0.0015;
+      const scrollDelta = e.deltaY * 0.002;
       const newProgress = Math.min(Math.max(scrollProgress + scrollDelta, 0), 1);
       setScrollProgress(newProgress);
 
-      if (newProgress >= 1) {
+      if (newProgress >= 1 && !animationComplete) {
         setAnimationComplete(true);
       }
     };
@@ -61,15 +77,29 @@ const ScrollExpandMedia = ({
       if (!touchStartY) return;
 
       const touchY = e.touches[0].clientY;
-      const deltaY = touchStartY - touchY;
+      const deltaY = touchStartY - touchY; // positive = scrolling down
 
+      // If animation is complete and user scrolls down, allow scrolling
+      if (animationComplete && deltaY > 10) {
+        setCanScrollPast(true);
+        return;
+      }
+
+      // If animation is complete and user scrolls up, stay locked
+      if (animationComplete && deltaY < 0) {
+        e.preventDefault();
+        setTouchStartY(touchY);
+        return;
+      }
+
+      // During animation
       e.preventDefault();
-      const scrollFactor = 0.006;
+      const scrollFactor = 0.008;
       const scrollDelta = deltaY * scrollFactor;
       const newProgress = Math.min(Math.max(scrollProgress + scrollDelta, 0), 1);
       setScrollProgress(newProgress);
 
-      if (newProgress >= 1) {
+      if (newProgress >= 1 && !animationComplete) {
         setAnimationComplete(true);
       }
 
@@ -81,7 +111,7 @@ const ScrollExpandMedia = ({
     };
 
     const handleScroll = (): void => {
-      if (!animationComplete) {
+      if (!canScrollPast) {
         window.scrollTo(0, 0);
       }
     };
@@ -99,7 +129,7 @@ const ScrollExpandMedia = ({
       window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [scrollProgress, animationComplete, touchStartY]);
+  }, [scrollProgress, animationComplete, canScrollPast, touchStartY]);
 
   useEffect(() => {
     const checkIfMobile = (): void => {
@@ -112,21 +142,17 @@ const ScrollExpandMedia = ({
     return () => window.removeEventListener('resize', checkIfMobile);
   }, []);
 
-  const baseWidth = isMobileState ? 300 : 300;
-  const maxWidth = isMobileState ? 950 : 1550;
-  const baseHeight = isMobileState ? 400 : 400;
-  const maxHeight = isMobileState ? 600 : 800;
+  const baseWidth = isMobileState ? 280 : 320;
+  const maxWidth = isMobileState ? window.innerWidth : window.innerWidth;
+  const baseHeight = isMobileState ? 350 : 420;
+  const maxHeight = isMobileState ? window.innerHeight : window.innerHeight;
 
-  const mediaWidth = animationComplete 
-    ? window.innerWidth 
-    : baseWidth + scrollProgress * (maxWidth - baseWidth);
-  const mediaHeight = animationComplete 
-    ? window.innerHeight 
-    : baseHeight + scrollProgress * (maxHeight - baseHeight);
-  const borderRadius = animationComplete ? 0 : Math.max(0, 24 * (1 - scrollProgress));
+  const mediaWidth = baseWidth + scrollProgress * (maxWidth - baseWidth);
+  const mediaHeight = baseHeight + scrollProgress * (maxHeight - baseHeight);
+  const borderRadius = Math.max(0, 24 * (1 - scrollProgress));
   
   const textTranslateX = scrollProgress * (isMobileState ? 180 : 150);
-  const textOpacity = Math.max(0, 1 - scrollProgress * 2);
+  const textOpacity = Math.max(0, 1 - scrollProgress * 2.5);
 
   const firstWord = title ? title.split(' ')[0] : '';
   const restOfTitle = title ? title.split(' ').slice(1).join(' ') : '';
@@ -144,7 +170,7 @@ const ScrollExpandMedia = ({
         className="absolute inset-0 w-full h-full bg-cover bg-center z-0"
         style={{
           backgroundImage: `url(${bgImageSrc})`,
-          opacity: animationComplete ? 0 : 0.4,
+          opacity: scrollProgress > 0.8 ? 0 : 0.4,
           transition: 'opacity 0.5s ease',
         }}
       />
@@ -154,27 +180,25 @@ const ScrollExpandMedia = ({
         className="absolute inset-0 z-[1]"
         style={{
           background: 'linear-gradient(135deg, rgba(15, 12, 41, 0.85) 0%, rgba(48, 43, 99, 0.7) 50%, rgba(36, 36, 62, 0.85) 100%)',
-          opacity: animationComplete ? 0 : 1,
+          opacity: scrollProgress > 0.8 ? 0 : 1,
           transition: 'opacity 0.5s ease',
         }}
       />
 
       <div className="relative z-10 flex flex-col items-center justify-center h-full w-full">
         {/* Container for media and overlapping title */}
-        <div className="relative flex flex-col items-center justify-center w-full">
-          {/* Media container - CSS transitions instead of Framer Motion */}
+        <div className="relative flex flex-col items-center justify-center w-full h-full">
+          {/* Media container */}
           <div
             className="relative overflow-hidden"
             style={{
               width: `${mediaWidth}px`,
               height: `${mediaHeight}px`,
-              maxWidth: animationComplete ? '100vw' : '95vw',
-              maxHeight: animationComplete ? '100vh' : '90vh',
               borderRadius: `${borderRadius}px`,
-              boxShadow: animationComplete 
+              boxShadow: scrollProgress >= 1 
                 ? 'none' 
                 : '0 25px 80px -20px rgba(0, 0, 0, 0.5), 0 10px 40px -10px rgba(0, 0, 0, 0.3)',
-              transition: 'width 0.1s ease-out, height 0.1s ease-out, border-radius 0.1s ease-out, box-shadow 0.3s ease',
+              transition: 'box-shadow 0.3s ease',
             }}
           >
             {mediaType === 'video' ? (
@@ -210,13 +234,12 @@ const ScrollExpandMedia = ({
             )}
           </div>
 
-          {/* Title text overlay - Vertically centered, above card with blend mode */}
+          {/* Title text overlay */}
           <div
             className="absolute inset-0 flex items-center justify-center pointer-events-none"
             style={{ 
               zIndex: 30,
               opacity: textOpacity,
-              transition: 'opacity 0.1s ease',
             }}
           >
             <div 
@@ -233,7 +256,6 @@ const ScrollExpandMedia = ({
                   fontStyle: 'italic',
                   color: 'white',
                   textShadow: '0 4px 30px rgba(0, 0, 0, 0.5)',
-                  transition: 'transform 0.1s ease-out',
                 }}
               >
                 {firstWord}
@@ -246,7 +268,6 @@ const ScrollExpandMedia = ({
                   fontStyle: 'italic',
                   color: 'white',
                   textShadow: '0 4px 30px rgba(0, 0, 0, 0.5)',
-                  transition: 'transform 0.1s ease-out',
                 }}
               >
                 {restOfTitle}
@@ -254,13 +275,12 @@ const ScrollExpandMedia = ({
             </div>
           </div>
 
-          {/* Date and scroll text below media */}
+          {/* Date and scroll text */}
           <div 
             className="absolute bottom-8 left-0 right-0 flex flex-col items-center text-center"
             style={{ 
               zIndex: 20,
               opacity: textOpacity,
-              transition: 'opacity 0.1s ease',
             }}
           >
             {date && (
@@ -271,7 +291,6 @@ const ScrollExpandMedia = ({
                   fontFamily: "'Playfair Display', Georgia, serif",
                   fontStyle: 'italic',
                   color: 'rgba(255, 255, 255, 0.8)',
-                  transition: 'transform 0.1s ease-out',
                 }}
               >
                 {date}
@@ -283,7 +302,6 @@ const ScrollExpandMedia = ({
                 style={{ 
                   transform: `translateX(${textTranslateX}vw)`,
                   color: 'rgba(255, 255, 255, 0.6)',
-                  transition: 'transform 0.1s ease-out',
                 }}
               >
                 {scrollToExpand}
