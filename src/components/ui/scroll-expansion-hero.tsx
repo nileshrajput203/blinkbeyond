@@ -216,6 +216,10 @@ const ScrollExpandMedia = ({
   const mediaHeight = baseHeight + scrollProgress * (maxHeight - baseHeight);
   const borderRadius = Math.max(0, 24 * (1 - scrollProgress));
   
+  // Parallax effect - background moves slower (0.3x) for depth
+  const parallaxY = scrollProgress * 15;
+  const parallaxScale = 1 + scrollProgress * 0.1;
+  
   const textTranslateX = scrollProgress * (isMobileState ? 180 : 150);
   const textOpacity = Math.max(0, 1 - scrollProgress * 2.5);
 
@@ -230,13 +234,14 @@ const ScrollExpandMedia = ({
         background: 'linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)',
       }}
     >
-      {/* Background image with dark overlay */}
+      {/* Background image with parallax effect */}
       <div
         className="absolute inset-0 w-full h-full bg-cover bg-center z-0"
         style={{
           backgroundImage: `url(${bgImageSrc})`,
           opacity: scrollProgress > 0.8 ? 0 : 0.4,
-          transition: 'opacity 0.5s ease',
+          transform: `translateY(${parallaxY}%) scale(${parallaxScale})`,
+          transition: 'opacity 0.5s ease, transform 0.1s ease-out',
         }}
       />
       
