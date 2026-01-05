@@ -3,12 +3,26 @@ import { Link } from "react-router-dom";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ArrowRight, Users, Zap } from "lucide-react";
+import { MagneticText } from "@/components/ui/morphing-cursor";
 
 gsap.registerPlugin(ScrollTrigger);
 
 const AboutServices = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const cardsRef = useRef<HTMLDivElement>(null);
+
+  const aboutServices = [
+    { text: "Creative", hoverText: "Innovative" },
+    { text: "Strategic", hoverText: "Results-Driven" },
+    { text: "Reliable", hoverText: "Always There" },
+  ];
+
+  const ourServices = [
+    { text: "Shopify", hoverText: "E-Commerce" },
+    { text: "Web Dev", hoverText: "Custom Sites" },
+    { text: "Social Media", hoverText: "Engagement" },
+    { text: "Branding", hoverText: "Identity" },
+  ];
 
   const cards = [
     {
@@ -17,7 +31,7 @@ const AboutServices = () => {
       description: "A team of creative thinkers and tech enthusiasts building digital experiences that matter.",
       href: "/about",
       icon: Users,
-      stats: ["50+ Projects", "5 Years", "100% Passion"],
+      magneticItems: aboutServices,
       gradient: "from-primary/20 via-primary/10 to-transparent",
       accentColor: "bg-primary",
     },
@@ -27,7 +41,7 @@ const AboutServices = () => {
       description: "From concept to launch, we craft digital solutions that drive growth and engagement.",
       href: "/services",
       icon: Zap,
-      stats: ["Blink", "Build", "Boom"],
+      magneticItems: ourServices,
       gradient: "from-accent/20 via-accent/10 to-transparent",
       accentColor: "bg-accent",
     },
@@ -73,10 +87,9 @@ const AboutServices = () => {
           {cards.map((card) => {
             const IconComponent = card.icon;
             return (
-              <Link
+              <div
                 key={card.title}
-                to={card.href}
-                className="group relative bg-card rounded-3xl p-8 md:p-10 min-h-[320px] md:min-h-[380px] flex flex-col justify-between hover-lift opacity-0 overflow-hidden border border-border/50 hover:border-border transition-all duration-500"
+                className="group relative bg-card rounded-3xl p-8 md:p-10 min-h-[380px] md:min-h-[440px] flex flex-col justify-between hover-lift opacity-0 overflow-hidden border border-border/50 hover:border-border transition-all duration-500"
               >
                 {/* Gradient overlay */}
                 <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
@@ -101,27 +114,41 @@ const AboutServices = () => {
                   </p>
                   
                   {/* Description */}
-                  <p className="text-foreground/70 text-base leading-relaxed">
+                  <p className="text-foreground/70 text-base leading-relaxed mb-6">
                     {card.description}
                   </p>
+
+                  {/* Magnetic Text Items */}
+                  <div className="flex flex-wrap gap-3">
+                    {card.magneticItems.map((item, index) => (
+                      <MagneticText
+                        key={index}
+                        text={item.text}
+                        hoverText={item.hoverText}
+                        className="text-sm md:text-base px-4 py-2 rounded-full bg-muted/50 border border-border/50"
+                      />
+                    ))}
+                  </div>
                 </div>
                 
                 <div className="relative z-10 flex items-center justify-between mt-6">
-                  {/* Stats */}
-                  <div className="flex flex-wrap gap-2">
-                    {card.stats.map((stat) => (
-                      <span key={stat} className="text-xs font-medium px-3 py-1.5 rounded-full bg-muted text-muted-foreground">
-                        {stat}
-                      </span>
-                    ))}
-                  </div>
+                  {/* CTA Link */}
+                  <Link
+                    to={card.href}
+                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Learn more
+                  </Link>
                   
                   {/* Arrow */}
-                  <div className="w-10 h-10 rounded-full bg-foreground/5 flex items-center justify-center group-hover:bg-foreground group-hover:text-background transition-all duration-300 group-hover:scale-110">
-                    <ArrowRight className="w-5 h-5 transform group-hover:translate-x-0.5 transition-transform" />
-                  </div>
+                  <Link
+                    to={card.href}
+                    className="w-10 h-10 rounded-full bg-foreground/5 flex items-center justify-center hover:bg-foreground hover:text-background transition-all duration-300 hover:scale-110"
+                  >
+                    <ArrowRight className="w-5 h-5" />
+                  </Link>
                 </div>
-              </Link>
+              </div>
             );
           })}
         </div>
