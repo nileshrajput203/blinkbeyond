@@ -219,6 +219,7 @@ const ScrollExpandMedia = ({
   // Parallax effect - background moves slower (0.3x) for depth
   const parallaxY = scrollProgress * 15;
   const parallaxScale = 1 + scrollProgress * 0.1;
+  const blurAmount = scrollProgress * 12; // Max 12px blur
   
   const textTranslateX = scrollProgress * (isMobileState ? 180 : 150);
   const textOpacity = Math.max(0, 1 - scrollProgress * 2.5);
@@ -241,7 +242,8 @@ const ScrollExpandMedia = ({
           backgroundImage: `url(${bgImageSrc})`,
           opacity: scrollProgress > 0.8 ? 0 : 0.4,
           transform: `translateY(${parallaxY}%) scale(${parallaxScale})`,
-          transition: 'opacity 0.5s ease, transform 0.1s ease-out',
+          filter: `blur(${blurAmount}px)`,
+          transition: 'opacity 0.5s ease, transform 0.1s ease-out, filter 0.1s ease-out',
         }}
       />
       
