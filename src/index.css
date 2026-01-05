@@ -109,11 +109,16 @@
   }
 
   .animate-marquee {
-    animation: marquee 20s linear infinite;
+    animation: marquee 12s linear infinite;
   }
 
   .animate-marquee:hover {
     animation-play-state: paused;
+  }
+
+  .marquee-container {
+    mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
   }
 }
 
