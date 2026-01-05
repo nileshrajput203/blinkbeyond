@@ -62,7 +62,7 @@ const TrustedBy = () => {
   }, []);
 
   return (
-    <section ref={sectionRef} className="py-16 relative overflow-hidden">
+    <section ref={sectionRef} className="py-16 relative overflow-hidden z-0">
       {/* Gradient background */}
       <div
         className="absolute inset-0"
