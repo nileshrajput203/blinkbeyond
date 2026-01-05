@@ -29,6 +29,7 @@ const ScrollExpandMedia = ({
 }: ScrollExpandMediaProps) => {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [animationComplete, setAnimationComplete] = useState(false);
+  const [canScrollPast, setCanScrollPast] = useState(false);
   const [isMobileState, setIsMobileState] = useState(false);
 
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -36,6 +37,7 @@ const ScrollExpandMedia = ({
   // Refs to avoid re-binding listeners on every progress tick
   const scrollProgressRef = useRef(0);
   const animationCompleteRef = useRef(false);
+  const canScrollPastRef = useRef(false);
   const touchStartYRef = useRef<number | null>(null);
   const autoScrollTimeoutRef = useRef<number | null>(null);
 
@@ -52,11 +54,18 @@ const ScrollExpandMedia = ({
   const resetAnimation = () => {
     animationCompleteRef.current = false;
     setAnimationComplete(false);
+    canScrollPastRef.current = false;
+    setCanScrollPast(false);
     
     if (autoScrollTimeoutRef.current) {
       window.clearTimeout(autoScrollTimeoutRef.current);
       autoScrollTimeoutRef.current = null;
     }
+  };
+
+  const enableScrollPast = () => {
+    canScrollPastRef.current = true;
+    setCanScrollPast(true);
   };
 
   useEffect(() => {
@@ -73,7 +82,9 @@ const ScrollExpandMedia = ({
   }, [mediaType]);
 
   useEffect(() => {
-    // Lock document scrolling while hero is active
+    // Only lock scrolling when animation is not complete
+    if (canScrollPast) return;
+
     const html = document.documentElement;
     const body = document.body;
     const prevHtml = html.style.overflow;
@@ -86,17 +97,35 @@ const ScrollExpandMedia = ({
       html.style.overflow = prevHtml;
       body.style.overflow = prevBody;
     };
-  }, []);
+  }, [canScrollPast]);
 
   useEffect(() => {
     const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 
     const handleWheel = (e: WheelEvent) => {
-      // Never allow page scroll while in hero
+      const delta = e.deltaY;
+      
+      // If can scroll past and scrolling down, allow native scroll
+      if (canScrollPastRef.current && delta > 0) {
+        return;
+      }
+      
+      // If scrolling up while past hero, check if we should re-engage
+      if (canScrollPastRef.current && delta < 0) {
+        const heroBottom = sectionRef.current?.getBoundingClientRect().bottom ?? 0;
+        if (heroBottom >= window.innerHeight * 0.9) {
+          // Re-engage the hero animation
+          resetAnimation();
+          e.preventDefault();
+          return;
+        }
+        return; // Allow normal scroll
+      }
+
+      // Prevent scroll during animation
       e.preventDefault();
 
-      const delta = e.deltaY * 0.002;
-      const nextProgress = clamp01(scrollProgressRef.current + delta);
+      const nextProgress = clamp01(scrollProgressRef.current + delta * 0.002);
       
       // Scrolling up (reverse animation)
       if (delta < 0 && animationCompleteRef.current) {
@@ -105,9 +134,10 @@ const ScrollExpandMedia = ({
       
       setProgress(nextProgress);
       
-      // Mark complete when fully expanded
+      // Mark complete when fully expanded, then enable scroll past
       if (nextProgress >= 1 && !animationCompleteRef.current) {
         markAnimationComplete();
+        enableScrollPast();
       }
     };
 
@@ -118,11 +148,30 @@ const ScrollExpandMedia = ({
     const handleTouchMove = (e: TouchEvent) => {
       if (touchStartYRef.current == null) return;
 
-      // Never allow page scroll while in hero
-      e.preventDefault();
-
       const touchY = e.touches[0]?.clientY ?? touchStartYRef.current;
       const deltaY = touchStartYRef.current - touchY; // positive = scrolling down
+
+      // If can scroll past and scrolling down, allow native scroll
+      if (canScrollPastRef.current && deltaY > 0) {
+        touchStartYRef.current = touchY;
+        return;
+      }
+      
+      // If scrolling up while past hero, check if we should re-engage
+      if (canScrollPastRef.current && deltaY < 0) {
+        const heroBottom = sectionRef.current?.getBoundingClientRect().bottom ?? 0;
+        if (heroBottom >= window.innerHeight * 0.9) {
+          resetAnimation();
+          e.preventDefault();
+          touchStartYRef.current = touchY;
+          return;
+        }
+        touchStartYRef.current = touchY;
+        return;
+      }
+
+      // Prevent scroll during animation
+      e.preventDefault();
 
       // Scrolling up (reverse animation)
       if (deltaY < 0 && animationCompleteRef.current) {
@@ -135,6 +184,7 @@ const ScrollExpandMedia = ({
       // Mark complete when fully expanded
       if (nextProgress >= 1 && !animationCompleteRef.current) {
         markAnimationComplete();
+        enableScrollPast();
       }
 
       touchStartYRef.current = touchY;
