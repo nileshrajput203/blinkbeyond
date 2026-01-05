@@ -30,116 +30,155 @@ const ScrollExpandMedia = ({
   const [scrollProgress, setScrollProgress] = useState(0);
   const [animationComplete, setAnimationComplete] = useState(false);
   const [canScrollPast, setCanScrollPast] = useState(false);
-  const [touchStartY, setTouchStartY] = useState(0);
   const [isMobileState, setIsMobileState] = useState(false);
 
   const sectionRef = useRef<HTMLDivElement>(null);
 
+  // Refs to avoid re-binding listeners on every progress tick (prevents DOM/scroll race conditions)
+  const scrollProgressRef = useRef(0);
+  const animationCompleteRef = useRef(false);
+  const canScrollPastRef = useRef(false);
+  const touchStartYRef = useRef<number | null>(null);
+  const autoScrollTimeoutRef = useRef<number | null>(null);
+  const restoreOverflowRef = useRef<{ html: string; body: string } | null>(null);
+
+  const setProgress = (value: number) => {
+    scrollProgressRef.current = value;
+    setScrollProgress(value);
+  };
+
+  const markAnimationComplete = () => {
+    animationCompleteRef.current = true;
+    setAnimationComplete(true);
+  };
+
+  const releaseAndScrollNext = () => {
+    if (canScrollPastRef.current) return;
+
+    canScrollPastRef.current = true;
+    setCanScrollPast(true);
+
+    // Restore scrolling
+    const prev = restoreOverflowRef.current;
+    if (prev) {
+      document.documentElement.style.overflow = prev.html;
+      document.body.style.overflow = prev.body;
+      restoreOverflowRef.current = null;
+    }
+
+    // Scroll to next section
+    const next = document.getElementById("services");
+    next?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   useEffect(() => {
-    setScrollProgress(0);
+    // Reset when media changes
+    setProgress(0);
+    animationCompleteRef.current = false;
     setAnimationComplete(false);
+    canScrollPastRef.current = false;
     setCanScrollPast(false);
+    touchStartYRef.current = null;
+
+    if (autoScrollTimeoutRef.current) {
+      window.clearTimeout(autoScrollTimeoutRef.current);
+      autoScrollTimeoutRef.current = null;
+    }
   }, [mediaType]);
 
   useEffect(() => {
-    // If we can scroll past, don't intercept any events
+    // Lock document scrolling until we auto-scroll to the next section
     if (canScrollPast) return;
 
+    const html = document.documentElement;
+    const body = document.body;
+
+    restoreOverflowRef.current = {
+      html: html.style.overflow,
+      body: body.style.overflow,
+    };
+
+    html.style.overflow = "hidden";
+    body.style.overflow = "hidden";
+
+    return () => {
+      // Restore only if we didn't already release
+      if (!canScrollPastRef.current && restoreOverflowRef.current) {
+        html.style.overflow = restoreOverflowRef.current.html;
+        body.style.overflow = restoreOverflowRef.current.body;
+        restoreOverflowRef.current = null;
+      }
+    };
+  }, [canScrollPast]);
+
+  useEffect(() => {
+    const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+
+    const maybeFinish = (nextProgress: number) => {
+      if (nextProgress >= 1 && !animationCompleteRef.current) {
+        markAnimationComplete();
+
+        // After it gets wide, wait 1s, then auto-scroll to the next section
+        autoScrollTimeoutRef.current = window.setTimeout(() => {
+          releaseAndScrollNext();
+        }, 1000);
+      }
+    };
+
     const handleWheel = (e: WheelEvent) => {
-      // If animation is complete and user scrolls down, allow scrolling to next section
-      if (animationComplete && e.deltaY > 0) {
-        setCanScrollPast(true);
-        return; // Let the scroll happen naturally
-      }
+      // Once released, don't intercept
+      if (canScrollPastRef.current) return;
 
-      // If animation is complete and user scrolls up, stay locked
-      if (animationComplete && e.deltaY < 0) {
-        e.preventDefault();
-        return;
-      }
-
-      // During animation, prevent default and control progress
+      // Never allow page scroll while locked
       e.preventDefault();
-      const scrollDelta = e.deltaY * 0.002;
-      const newProgress = Math.min(Math.max(scrollProgress + scrollDelta, 0), 1);
-      setScrollProgress(newProgress);
 
-      if (newProgress >= 1 && !animationComplete) {
-        setAnimationComplete(true);
-      }
+      // If fully expanded, wait for the 1s auto-scroll
+      if (animationCompleteRef.current) return;
+
+      const nextProgress = clamp01(scrollProgressRef.current + e.deltaY * 0.002);
+      setProgress(nextProgress);
+      maybeFinish(nextProgress);
     };
 
     const handleTouchStart = (e: TouchEvent) => {
-      setTouchStartY(e.touches[0].clientY);
+      touchStartYRef.current = e.touches[0]?.clientY ?? null;
     };
 
     const handleTouchMove = (e: TouchEvent) => {
-      if (!touchStartY) return;
+      if (canScrollPastRef.current) return;
+      if (touchStartYRef.current == null) return;
 
-      const touchY = e.touches[0].clientY;
-      const deltaY = touchStartY - touchY; // positive = scrolling down
-
-      // If animation is complete and user scrolls down, allow scrolling
-      if (animationComplete && deltaY > 10) {
-        setCanScrollPast(true);
-        return;
-      }
-
-      // If animation is complete and user scrolls up, stay locked
-      if (animationComplete && deltaY < 0) {
-        e.preventDefault();
-        setTouchStartY(touchY);
-        return;
-      }
-
-      // During animation
+      // Never allow page scroll while locked
       e.preventDefault();
-      const scrollFactor = 0.008;
-      const scrollDelta = deltaY * scrollFactor;
-      const newProgress = Math.min(Math.max(scrollProgress + scrollDelta, 0), 1);
-      setScrollProgress(newProgress);
 
-      if (newProgress >= 1 && !animationComplete) {
-        setAnimationComplete(true);
-      }
+      // If fully expanded, wait for the 1s auto-scroll
+      if (animationCompleteRef.current) return;
 
-      setTouchStartY(touchY);
+      const touchY = e.touches[0]?.clientY ?? touchStartYRef.current;
+      const deltaY = touchStartYRef.current - touchY; // positive = scrolling down
+
+      const nextProgress = clamp01(scrollProgressRef.current + deltaY * 0.008);
+      setProgress(nextProgress);
+      maybeFinish(nextProgress);
+
+      touchStartYRef.current = touchY;
     };
 
-    const handleTouchEnd = (): void => {
-      setTouchStartY(0);
+    const handleTouchEnd = () => {
+      touchStartYRef.current = null;
     };
 
-    const handleScroll = (): void => {
-      if (!canScrollPast) {
-        window.scrollTo(0, 0);
-      }
-    };
-
-    window.addEventListener('wheel', handleWheel, { passive: false });
-    window.addEventListener('scroll', handleScroll);
-    window.addEventListener('touchstart', handleTouchStart, { passive: false });
-    window.addEventListener('touchmove', handleTouchMove, { passive: false });
-    window.addEventListener('touchend', handleTouchEnd);
+    window.addEventListener("wheel", handleWheel, { passive: false });
+    window.addEventListener("touchstart", handleTouchStart, { passive: false });
+    window.addEventListener("touchmove", handleTouchMove, { passive: false });
+    window.addEventListener("touchend", handleTouchEnd);
 
     return () => {
-      window.removeEventListener('wheel', handleWheel);
-      window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('touchstart', handleTouchStart);
-      window.removeEventListener('touchmove', handleTouchMove);
-      window.removeEventListener('touchend', handleTouchEnd);
+      window.removeEventListener("wheel", handleWheel);
+      window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("touchmove", handleTouchMove);
+      window.removeEventListener("touchend", handleTouchEnd);
     };
-  }, [scrollProgress, animationComplete, canScrollPast, touchStartY]);
-
-  useEffect(() => {
-    const checkIfMobile = (): void => {
-      setIsMobileState(window.innerWidth < 768);
-    };
-
-    checkIfMobile();
-    window.addEventListener('resize', checkIfMobile);
-
-    return () => window.removeEventListener('resize', checkIfMobile);
   }, []);
 
   const baseWidth = isMobileState ? 280 : 320;
