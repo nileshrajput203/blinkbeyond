@@ -10,6 +10,13 @@ interface MagneticTextProps {
   className?: string
 }
 
+interface MagneticContainerProps {
+  children: React.ReactNode
+  revealContent: React.ReactNode
+  className?: string
+  circleSize?: number
+}
+
 export function MagneticText({ text = "CREATIVE", hoverText = "EXPLORE", className }: MagneticTextProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const circleRef = useRef<HTMLDivElement>(null)
@@ -93,12 +100,10 @@ export function MagneticText({ text = "CREATIVE", hoverText = "EXPLORE", classNa
         className
       )}
     >
-      {/* Base text layer - original text */}
       <span className="relative z-10 font-heading font-bold text-foreground transition-opacity duration-300">
         {text}
       </span>
 
-      {/* Magnetic circle with hover text */}
       <div
         className={cn(
           "pointer-events-none absolute left-0 top-0 z-20 transition-opacity duration-300",
@@ -127,6 +132,119 @@ export function MagneticText({ text = "CREATIVE", hoverText = "EXPLORE", classNa
           >
             {hoverText}
           </span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export function MagneticContainer({ 
+  children, 
+  revealContent, 
+  className,
+  circleSize = 200 
+}: MagneticContainerProps) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const circleRef = useRef<HTMLDivElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
+  const [isHovered, setIsHovered] = useState(false)
+
+  const mousePos = useRef({ x: 0, y: 0 })
+  const currentPos = useRef({ x: 0, y: 0 })
+  const animationFrameRef = useRef<number>()
+
+  useEffect(() => {
+    const lerp = (start: number, end: number, factor: number) => start + (end - start) * factor
+
+    const animate = () => {
+      currentPos.current.x = lerp(currentPos.current.x, mousePos.current.x, 0.12)
+      currentPos.current.y = lerp(currentPos.current.y, mousePos.current.y, 0.12)
+
+      if (circleRef.current) {
+        circleRef.current.style.transform = `translate(${currentPos.current.x}px, ${currentPos.current.y}px) translate(-50%, -50%)`
+      }
+
+      if (contentRef.current) {
+        contentRef.current.style.transform = `translate(${-currentPos.current.x}px, ${-currentPos.current.y}px)`
+      }
+
+      animationFrameRef.current = requestAnimationFrame(animate)
+    }
+
+    animationFrameRef.current = requestAnimationFrame(animate)
+    return () => {
+      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current)
+    }
+  }, [])
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!containerRef.current) return
+    const rect = containerRef.current.getBoundingClientRect()
+    mousePos.current = {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    }
+  }, [])
+
+  const handleMouseEnter = useCallback((e: React.MouseEvent) => {
+    if (!containerRef.current) return
+    const rect = containerRef.current.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+    mousePos.current = { x, y }
+    currentPos.current = { x, y }
+    setIsHovered(true)
+  }, [])
+
+  const handleMouseLeave = useCallback(() => {
+    setIsHovered(false)
+  }, [])
+
+  return (
+    <div
+      ref={containerRef}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      className={cn(
+        "relative cursor-pointer select-none overflow-hidden",
+        className
+      )}
+    >
+      {/* Base content layer */}
+      <div className="relative z-10">
+        {children}
+      </div>
+
+      {/* Magnetic circle with reveal content */}
+      <div
+        className={cn(
+          "pointer-events-none absolute inset-0 z-20 transition-opacity duration-300",
+          isHovered ? "opacity-100" : "opacity-0"
+        )}
+      >
+        <div
+          ref={circleRef}
+          className="absolute rounded-full bg-primary overflow-hidden"
+          style={{
+            width: circleSize,
+            height: circleSize,
+            clipPath: "circle(50% at center)",
+          }}
+        >
+          <div
+            ref={contentRef}
+            className="absolute flex items-center justify-center"
+            style={{
+              width: containerRef.current?.offsetWidth || "100%",
+              height: containerRef.current?.offsetHeight || "100%",
+              left: "50%",
+              top: "50%",
+              transform: "translate(-50%, -50%)",
+            }}
+          >
+            {revealContent}
+          </div>
         </div>
       </div>
     </div>
