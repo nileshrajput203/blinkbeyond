@@ -11,22 +11,26 @@ import useSmoothScroll from "@/hooks/useSmoothScroll";
 
 const Index = () => {
   const [isLoading, setIsLoading] = useState(true);
-  
-  useSmoothScroll();
+
+  useSmoothScroll(!isLoading);
 
   return (
     <>
       {isLoading && <Preloader onComplete={() => setIsLoading(false)} />}
       <div className={`min-h-screen bg-background ${isLoading ? "overflow-hidden" : ""}`}>
-        <Header />
-        <main>
-          <Hero />
-          <ServicesStack />
-          <TrustedBy />
-          <AboutServices />
-          <OurWork />
-        </main>
-        <Footer />
+        {!isLoading && (
+          <>
+            <Header />
+            <main>
+              <Hero />
+              <ServicesStack />
+              <TrustedBy />
+              <AboutServices />
+              <OurWork />
+            </main>
+            <Footer />
+          </>
+        )}
       </div>
     </>
   );
