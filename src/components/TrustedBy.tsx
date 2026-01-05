@@ -15,6 +15,9 @@ const TrustedBy = () => {
     { name: "Company 3" },
     { name: "Company 4" },
     { name: "Company 5" },
+    { name: "Company 6" },
+    { name: "Company 7" },
+    { name: "Company 8" },
   ];
 
   useEffect(() => {
@@ -36,26 +39,6 @@ const TrustedBy = () => {
         }
       );
 
-      // Logos stagger
-      const logoItems = logosRef.current?.children;
-      if (logoItems) {
-        gsap.fromTo(
-          logoItems,
-          { opacity: 0, scale: 0.8 },
-          {
-            opacity: 1,
-            scale: 1,
-            duration: 0.5,
-            stagger: 0.1,
-            ease: "back.out(1.7)",
-            scrollTrigger: {
-              trigger: sectionRef.current,
-              start: "top 85%",
-              toggleActions: "play none none reverse",
-            },
-          }
-        );
-      }
     }, sectionRef);
 
     return () => ctx.revert();
@@ -80,18 +63,27 @@ const TrustedBy = () => {
           >
             Trusted by
           </span>
-          <div ref={logosRef} className="flex flex-wrap items-center justify-center gap-8 md:gap-16">
-            {logos.map((logo) => (
-              <div
-                key={logo.name}
-                className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-primary flex items-center justify-center opacity-0"
-                title={logo.name}
-              >
-                <span className="text-primary-foreground text-xs font-medium">
-                  Logo
-                </span>
-              </div>
-            ))}
+          <div className="overflow-hidden flex-1 max-w-4xl">
+            <div 
+              ref={logosRef} 
+              className="flex items-center gap-12 animate-marquee"
+              style={{
+                width: 'max-content',
+              }}
+            >
+              {/* Double the logos for seamless loop */}
+              {[...logos, ...logos].map((logo, index) => (
+                <div
+                  key={`${logo.name}-${index}`}
+                  className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-primary flex items-center justify-center flex-shrink-0"
+                  title={logo.name}
+                >
+                  <span className="text-primary-foreground text-xs font-medium">
+                    Logo
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
