@@ -166,26 +166,58 @@ const ServicesStack = () => {
       className="min-h-screen bg-background overflow-hidden isolate relative z-30 py-20"
       aria-label="Our services"
     >
-      <div className="container mx-auto max-w-4xl px-6">
-        <h2 className="text-3xl md:text-4xl font-heading font-bold text-center mb-16">
-          Our Services
-        </h2>
+      {/* Background elements */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-service-blink/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-40 right-10 w-96 h-96 bg-service-build/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-service-boom/5 rounded-full blur-3xl" />
+      </div>
+      
+      <div className="container mx-auto max-w-5xl px-6 relative z-10">
+        {/* Section header */}
+        <div className="text-center mb-20">
+          <span className="inline-block text-sm font-medium text-muted-foreground mb-4 tracking-widest uppercase">
+            What We Do
+          </span>
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-heading font-bold mb-6">
+            Our Services
+          </h2>
+          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+            A seamless three-step process designed to take your ideas from concept to market dominance.
+          </p>
+        </div>
 
         {/* Cards container */}
-        <div className="relative h-[450px] perspective-1000">
+        <div className="relative h-[500px] perspective-1000">
           {services.map((service, index) => (
             <div
               key={service.name}
               ref={(el) => (cardsRef.current[index] = el)}
               className={`absolute inset-x-0 ${service.bgClass} ${service.textClass} rounded-3xl shadow-2xl overflow-hidden will-change-transform`}
               style={{
-                height: "420px",
+                height: "480px",
                 transformOrigin: "center top",
               }}
             >
               {/* Card inner content */}
-              <div className="h-full p-8 md:p-10 flex flex-col">
-                <h3 className="text-3xl md:text-4xl font-heading font-bold mb-6">
+              <div className="h-full p-8 md:p-12 flex flex-col relative">
+                {/* Step indicator */}
+                <div className="absolute top-8 right-8 md:right-12">
+                  <span className="text-6xl md:text-7xl font-heading font-bold opacity-10">
+                    0{index + 1}
+                  </span>
+                </div>
+                
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-12 h-12 rounded-xl bg-background/20 backdrop-blur-sm flex items-center justify-center">
+                    <span className="text-2xl">
+                      {index === 0 ? "⚡" : index === 1 ? "🔧" : "🚀"}
+                    </span>
+                  </div>
+                  <div className="h-px flex-1 bg-current opacity-20" />
+                </div>
+                
+                <h3 className="text-4xl md:text-5xl font-heading font-bold mb-4">
                   {service.name}
                 </h3>
 
@@ -194,27 +226,48 @@ const ServicesStack = () => {
                   className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-8 items-center"
                 >
                   <div className="space-y-6">
-                    <p className="text-base md:text-lg opacity-90 leading-relaxed">
+                    <p className="text-lg md:text-xl opacity-90 leading-relaxed font-medium">
                       {service.description}
                     </p>
+                    
+                    {/* Features list */}
+                    <ul className="space-y-3">
+                      {["Strategy & Planning", "Expert Execution", "Measurable Results"].map((feature, i) => (
+                        <li key={feature} className="flex items-center gap-3 text-sm opacity-80">
+                          <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+                    
                     <button
-                      className="inline-flex items-center justify-center rounded-xl px-6 py-3 text-sm font-semibold bg-background/20 hover:bg-background/30 backdrop-blur-sm transition-all duration-300 hover:scale-105"
+                      className="inline-flex items-center gap-2 rounded-xl px-8 py-4 text-sm font-semibold bg-background/20 hover:bg-background/30 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:gap-3 group"
                       type="button"
                     >
-                      Learn More →
+                      Learn More 
+                      <span className="transform group-hover:translate-x-1 transition-transform">→</span>
                     </button>
                   </div>
 
-                  <div className="w-full h-48 md:h-64 rounded-2xl bg-background/10 backdrop-blur-sm overflow-hidden border border-white/10">
-                    <div className="w-full h-full bg-gradient-to-br from-background/30 to-background/5 flex items-center justify-center">
-                      <div className="text-center space-y-2">
-                        <div className="w-16 h-16 mx-auto rounded-xl bg-background/20 flex items-center justify-center">
-                          <span className="text-2xl">
+                  <div className="w-full h-56 md:h-72 rounded-2xl bg-background/10 backdrop-blur-sm overflow-hidden border border-white/10 relative group">
+                    {/* Animated gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-background/40 via-transparent to-background/20" />
+                    
+                    {/* Grid pattern */}
+                    <div className="absolute inset-0 opacity-20" style={{
+                      backgroundImage: 'radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)',
+                      backgroundSize: '24px 24px'
+                    }} />
+                    
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="text-center space-y-4">
+                        <div className="w-20 h-20 mx-auto rounded-2xl bg-background/20 backdrop-blur-sm flex items-center justify-center transform group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
+                          <span className="text-4xl">
                             {index === 0 ? "⚡" : index === 1 ? "🔧" : "🚀"}
                           </span>
                         </div>
-                        <span className="text-sm opacity-60 block">
-                          {service.name} Preview
+                        <span className="text-sm opacity-60 block font-medium tracking-wide">
+                          {service.name} Phase
                         </span>
                       </div>
                     </div>
