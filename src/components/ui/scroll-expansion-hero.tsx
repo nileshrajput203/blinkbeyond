@@ -161,9 +161,11 @@ const ScrollExpandMedia = ({
 
         <div className="relative z-10 flex flex-col items-center">
           <div className="min-h-screen flex flex-col items-center justify-center w-full sticky top-0">
-            <div className="flex flex-col items-center justify-center w-full">
+            {/* Container for media and overlapping title */}
+            <div className="relative flex flex-col items-center justify-center w-full">
+              {/* Media container */}
               <div
-                className="relative rounded-xl overflow-hidden transition-all duration-100 ease-out"
+                className="relative rounded-2xl overflow-hidden transition-all duration-100 ease-out shadow-2xl"
                 style={{
                   width: `${mediaWidth}px`,
                   height: `${mediaHeight}px`,
@@ -185,7 +187,7 @@ const ScrollExpandMedia = ({
                         style={{ pointerEvents: 'none' }}
                       />
                       <motion.div
-                        className="absolute inset-0 bg-black/30 rounded-xl"
+                        className="absolute inset-0 bg-black/30 rounded-2xl"
                         initial={{ opacity: 0.7 }}
                         animate={{ opacity: 0.5 - scrollProgress * 0.3 }}
                         transition={{ duration: 0.2 }}
@@ -201,7 +203,7 @@ const ScrollExpandMedia = ({
                         loop
                         playsInline
                         preload="auto"
-                        className="w-full h-full object-cover rounded-xl"
+                        className="w-full h-full object-cover rounded-2xl"
                         controls={false}
                         disablePictureInPicture
                       />
@@ -210,7 +212,7 @@ const ScrollExpandMedia = ({
                         style={{ pointerEvents: 'none' }}
                       />
                       <motion.div
-                        className="absolute inset-0 bg-black/30 rounded-xl"
+                        className="absolute inset-0 bg-black/30 rounded-2xl"
                         initial={{ opacity: 0.7 }}
                         animate={{ opacity: 0.5 - scrollProgress * 0.3 }}
                         transition={{ duration: 0.2 }}
@@ -222,45 +224,47 @@ const ScrollExpandMedia = ({
                     <img
                       src={mediaSrc}
                       alt={title || 'Media content'}
-                      className="w-full h-full object-cover rounded-xl"
+                      className="w-full h-full object-cover rounded-2xl"
                     />
                     <motion.div
-                      className="absolute inset-0 bg-black/50 rounded-xl"
+                      className="absolute inset-0 bg-black/50 rounded-2xl"
                       initial={{ opacity: 0.7 }}
                       animate={{ opacity: 0.7 - scrollProgress * 0.3 }}
                       transition={{ duration: 0.2 }}
                     />
                   </div>
                 )}
+              </div>
 
-                {/* Title overlay on media */}
-                <div
-                  className={`absolute inset-0 flex items-center justify-center z-20 pointer-events-none ${
-                    textBlend ? 'mix-blend-difference' : ''
+              {/* Title text overlay - positioned to cross media boundary */}
+              <div
+                className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none"
+              >
+                <div 
+                  className={`flex flex-col items-center text-center gap-1 ${
+                    textBlend ? 'mix-blend-exclusion' : ''
                   }`}
                 >
-                  <div className="flex flex-col items-center text-center gap-2">
-                    <motion.h2
-                      className="text-4xl md:text-6xl lg:text-7xl font-serif italic font-bold bg-gradient-to-r from-rose-300 via-rose-200 to-white bg-clip-text text-transparent transition-none drop-shadow-lg"
-                      style={{ transform: `translateX(-${textTranslateX}vw)` }}
-                    >
-                      {firstWord}
-                    </motion.h2>
-                    <motion.h2
-                      className="text-4xl md:text-6xl lg:text-7xl font-serif italic font-bold bg-gradient-to-r from-white via-rose-200 to-rose-300 bg-clip-text text-transparent transition-none drop-shadow-lg"
-                      style={{ transform: `translateX(${textTranslateX}vw)` }}
-                    >
-                      {restOfTitle}
-                    </motion.h2>
-                  </div>
+                  <motion.h2
+                    className="text-5xl md:text-7xl lg:text-8xl font-serif italic font-bold text-rose-300/90 transition-none drop-shadow-[0_2px_10px_rgba(0,0,0,0.3)]"
+                    style={{ transform: `translateX(-${textTranslateX}vw)` }}
+                  >
+                    {firstWord}
+                  </motion.h2>
+                  <motion.h2
+                    className="text-5xl md:text-7xl lg:text-8xl font-serif italic font-bold text-white/90 transition-none drop-shadow-[0_2px_10px_rgba(0,0,0,0.3)]"
+                    style={{ transform: `translateX(${textTranslateX}vw)` }}
+                  >
+                    {restOfTitle}
+                  </motion.h2>
                 </div>
               </div>
 
               {/* Date and scroll text below media */}
-              <div className="flex flex-col items-center text-center mt-6 transition-none">
+              <div className="flex flex-col items-center text-center mt-8 transition-none z-20">
                 {date && (
                   <p
-                    className="text-xl md:text-2xl font-serif italic text-rose-200/80"
+                    className="text-xl md:text-2xl font-serif italic text-rose-200/70"
                     style={{ transform: `translateX(-${textTranslateX}vw)` }}
                   >
                     {date}
@@ -268,7 +272,7 @@ const ScrollExpandMedia = ({
                 )}
                 {scrollToExpand && (
                   <p
-                    className="text-sm text-rose-200/60 font-medium text-center tracking-wider"
+                    className="text-sm text-white/50 font-medium text-center tracking-widest uppercase"
                     style={{ transform: `translateX(${textTranslateX}vw)` }}
                   >
                     {scrollToExpand}
