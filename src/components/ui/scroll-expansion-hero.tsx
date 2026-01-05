@@ -31,6 +31,7 @@ const ScrollExpandMedia = ({
   const [animationComplete, setAnimationComplete] = useState(false);
   const [canScrollPast, setCanScrollPast] = useState(false);
   const [isMobileState, setIsMobileState] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
 
   const sectionRef = useRef<HTMLDivElement>(null);
 
@@ -38,8 +39,11 @@ const ScrollExpandMedia = ({
   const scrollProgressRef = useRef(0);
   const animationCompleteRef = useRef(false);
   const canScrollPastRef = useRef(false);
+  const isAnimatingRef = useRef(false);
+  const hasTriggeredRef = useRef(false);
   const touchStartYRef = useRef<number | null>(null);
   const autoScrollTimeoutRef = useRef<number | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
 
   const setProgress = (value: number) => {
     scrollProgressRef.current = value;
@@ -56,16 +60,86 @@ const ScrollExpandMedia = ({
     setAnimationComplete(false);
     canScrollPastRef.current = false;
     setCanScrollPast(false);
+    hasTriggeredRef.current = false;
+    isAnimatingRef.current = false;
+    setIsAnimating(false);
     
     if (autoScrollTimeoutRef.current) {
       window.clearTimeout(autoScrollTimeoutRef.current);
       autoScrollTimeoutRef.current = null;
+    }
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
     }
   };
 
   const enableScrollPast = () => {
     canScrollPastRef.current = true;
     setCanScrollPast(true);
+  };
+
+  // Auto-animate to target progress with easing
+  const autoAnimate = (targetProgress: number, duration: number = 800, onComplete?: () => void) => {
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+    }
+
+    isAnimatingRef.current = true;
+    setIsAnimating(true);
+
+    const startProgress = scrollProgressRef.current;
+    const startTime = performance.now();
+
+    const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+
+    const animate = (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+      const rawProgress = Math.min(elapsed / duration, 1);
+      const easedProgress = easeOutCubic(rawProgress);
+      
+      const newProgress = startProgress + (targetProgress - startProgress) * easedProgress;
+      setProgress(newProgress);
+
+      if (rawProgress < 1) {
+        animationFrameRef.current = requestAnimationFrame(animate);
+      } else {
+        isAnimatingRef.current = false;
+        setIsAnimating(false);
+        animationFrameRef.current = null;
+        onComplete?.();
+      }
+    };
+
+    animationFrameRef.current = requestAnimationFrame(animate);
+  };
+
+  // Trigger expansion animation and scroll to next section
+  const triggerExpansion = () => {
+    if (hasTriggeredRef.current || isAnimatingRef.current) return;
+    
+    hasTriggeredRef.current = true;
+    
+    autoAnimate(1, 800, () => {
+      markAnimationComplete();
+      enableScrollPast();
+      
+      // Scroll to next section after animation completes
+      autoScrollTimeoutRef.current = window.setTimeout(() => {
+        const servicesSection = document.getElementById('services');
+        if (servicesSection) {
+          servicesSection.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 200);
+    });
+  };
+
+  // Trigger reverse animation back to start
+  const triggerCollapse = () => {
+    if (isAnimatingRef.current) return;
+    
+    resetAnimation();
+    autoAnimate(0, 600);
   };
 
   useEffect(() => {
@@ -100,10 +174,14 @@ const ScrollExpandMedia = ({
   }, [canScrollPast]);
 
   useEffect(() => {
-    const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
-
     const handleWheel = (e: WheelEvent) => {
       const delta = e.deltaY;
+      
+      // If animating, block all scroll
+      if (isAnimatingRef.current) {
+        e.preventDefault();
+        return;
+      }
       
       // If can scroll past and scrolling down, allow native scroll
       if (canScrollPastRef.current && delta > 0) {
@@ -114,30 +192,21 @@ const ScrollExpandMedia = ({
       if (canScrollPastRef.current && delta < 0) {
         const heroBottom = sectionRef.current?.getBoundingClientRect().bottom ?? 0;
         if (heroBottom >= window.innerHeight * 0.9) {
-          // Re-engage the hero animation
-          resetAnimation();
+          // Re-engage the hero animation with collapse
           e.preventDefault();
+          triggerCollapse();
           return;
         }
         return; // Allow normal scroll
       }
 
-      // Prevent scroll during animation
+      // Prevent scroll during hero interaction
       e.preventDefault();
 
-      const nextProgress = clamp01(scrollProgressRef.current + delta * 0.002);
-      
-      // Scrolling up (reverse animation)
-      if (delta < 0 && animationCompleteRef.current) {
-        resetAnimation();
-      }
-      
-      setProgress(nextProgress);
-      
-      // Mark complete when fully expanded, then enable scroll past
-      if (nextProgress >= 1 && !animationCompleteRef.current) {
-        markAnimationComplete();
-        enableScrollPast();
+      // First scroll down triggers auto-expansion
+      if (delta > 0 && !hasTriggeredRef.current) {
+        triggerExpansion();
+        return;
       }
     };
 
@@ -151,6 +220,13 @@ const ScrollExpandMedia = ({
       const touchY = e.touches[0]?.clientY ?? touchStartYRef.current;
       const deltaY = touchStartYRef.current - touchY; // positive = scrolling down
 
+      // If animating, block all scroll
+      if (isAnimatingRef.current) {
+        e.preventDefault();
+        touchStartYRef.current = touchY;
+        return;
+      }
+
       // If can scroll past and scrolling down, allow native scroll
       if (canScrollPastRef.current && deltaY > 0) {
         touchStartYRef.current = touchY;
@@ -161,8 +237,8 @@ const ScrollExpandMedia = ({
       if (canScrollPastRef.current && deltaY < 0) {
         const heroBottom = sectionRef.current?.getBoundingClientRect().bottom ?? 0;
         if (heroBottom >= window.innerHeight * 0.9) {
-          resetAnimation();
           e.preventDefault();
+          triggerCollapse();
           touchStartYRef.current = touchY;
           return;
         }
@@ -170,21 +246,14 @@ const ScrollExpandMedia = ({
         return;
       }
 
-      // Prevent scroll during animation
+      // Prevent scroll during hero interaction
       e.preventDefault();
 
-      // Scrolling up (reverse animation)
-      if (deltaY < 0 && animationCompleteRef.current) {
-        resetAnimation();
-      }
-
-      const nextProgress = clamp01(scrollProgressRef.current + deltaY * 0.008);
-      setProgress(nextProgress);
-      
-      // Mark complete when fully expanded
-      if (nextProgress >= 1 && !animationCompleteRef.current) {
-        markAnimationComplete();
-        enableScrollPast();
+      // First scroll down triggers auto-expansion
+      if (deltaY > 0 && !hasTriggeredRef.current) {
+        triggerExpansion();
+        touchStartYRef.current = touchY;
+        return;
       }
 
       touchStartYRef.current = touchY;
