@@ -1,11 +1,21 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
   const isDarkPage = location.pathname === "/services" || location.pathname === "/about";
+  const isHomePage = location.pathname === "/";
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const navLinks = [
     { label: "Home", href: "/" },
@@ -14,21 +24,32 @@ const Header = () => {
     { label: "Contact", href: "/#contact" },
   ];
 
+  // On homepage: transparent initially, backdrop on scroll
+  // On dark pages: dark background
+  // On other pages: light background
+  const getHeaderStyles = () => {
+    if (isDarkPage) {
+      return "bg-service-blink/80 border-primary-foreground/10 backdrop-blur-md";
+    }
+    if (isHomePage) {
+      return isScrolled 
+        ? "bg-background/80 border-border/50 backdrop-blur-md" 
+        : "bg-transparent border-transparent";
+    }
+    return "bg-background/80 border-border/50 backdrop-blur-md";
+  };
+
   return (
-    <header className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-md border-b ${
-      isDarkPage 
-        ? "bg-service-blink/80 border-primary-foreground/10" 
-        : "bg-background/80 border-border/50"
-    }`}>
+    <header className={`fixed top-0 left-0 right-0 z-50 border-b transition-all duration-300 ${getHeaderStyles()}`}>
       <div className="container mx-auto px-6 lg:px-20">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
             <div className="flex items-center">
               <span className="text-2xl font-heading font-bold tracking-tight">
-                <span className={isDarkPage ? "text-primary-foreground" : "text-foreground"}>▸▸</span>
-                <span className={`ml-1 ${isDarkPage ? "text-primary-foreground" : "text-foreground"}`}>Blink</span>
-                <span className={isDarkPage ? "text-primary-foreground/60" : "text-muted-foreground"}>Beyond</span>
+                <span className={(isDarkPage || (isHomePage && !isScrolled)) ? "text-white" : "text-foreground"}>▸▸</span>
+                <span className={`ml-1 ${(isDarkPage || (isHomePage && !isScrolled)) ? "text-white" : "text-foreground"}`}>Blink</span>
+                <span className={(isDarkPage || (isHomePage && !isScrolled)) ? "text-white/60" : "text-muted-foreground"}>Beyond</span>
               </span>
             </div>
           </Link>
@@ -40,8 +61,8 @@ const Header = () => {
                 key={link.label}
                 to={link.href}
                 className={`nav-link text-lg ${
-                  isDarkPage 
-                    ? "text-primary-foreground hover:text-primary-foreground/80" 
+                  (isDarkPage || (isHomePage && !isScrolled))
+                    ? "text-white hover:text-white/80" 
                     : ""
                 }`}
               >
@@ -52,7 +73,7 @@ const Header = () => {
 
           {/* Mobile Menu Button */}
           <button
-            className={`md:hidden p-2 ${isDarkPage ? "text-primary-foreground" : ""}`}
+            className={`md:hidden p-2 ${(isDarkPage || (isHomePage && !isScrolled)) ? "text-white" : ""}`}
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label="Toggle menu"
           >
