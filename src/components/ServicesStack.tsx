@@ -6,8 +6,7 @@ gsap.registerPlugin(ScrollTrigger);
 
 const ServicesStack = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
-  const stackRef = useRef<HTMLDivElement>(null);
-  const cardsRef = useRef<(HTMLElement | null)[]>([]);
+  const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
   const contentRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const services = useMemo(
@@ -18,8 +17,6 @@ const ServicesStack = () => {
         textClass: "text-primary-foreground",
         description:
           "Rapid ideation & strategy — we turn your vision into actionable plans in record time.",
-        collapsedHeight: 90,
-        expandedHeight: 420,
       },
       {
         name: "Build",
@@ -27,8 +24,6 @@ const ServicesStack = () => {
         textClass: "text-primary-foreground",
         description:
           "Development & execution — bringing your digital product to life with precision and care.",
-        collapsedHeight: 80,
-        expandedHeight: 380,
       },
       {
         name: "Boom",
@@ -36,8 +31,6 @@ const ServicesStack = () => {
         textClass: "text-muted-foreground",
         description:
           "Launch & growth — amplifying your reach with data-driven marketing strategies.",
-        collapsedHeight: 70,
-        expandedHeight: 340,
       },
     ],
     []
@@ -45,58 +38,120 @@ const ServicesStack = () => {
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      const stack = stackRef.current;
-      if (!stack) return;
+      const cards = cardsRef.current.filter(Boolean) as HTMLDivElement[];
+      const contents = contentRefs.current.filter(Boolean) as HTMLDivElement[];
+      
+      if (cards.length !== services.length) return;
 
-      // Initial state
-      services.forEach((s, i) => {
-        const card = cardsRef.current[i];
-        const content = contentRefs.current[i];
-        if (!card || !content) return;
-
-        gsap.set(card, { height: s.collapsedHeight });
-        gsap.set(content, { autoAlpha: 0, y: 24 });
+      // Initial state - stack cards with offset, first card expanded
+      cards.forEach((card, i) => {
+        gsap.set(card, {
+          y: i * 60, // Stack offset
+          zIndex: services.length - i,
+          scale: 1 - i * 0.02,
+        });
+        
+        // First card content visible, rest hidden
+        if (i === 0) {
+          gsap.set(contents[i], { autoAlpha: 1, y: 0 });
+        } else {
+          gsap.set(contents[i], { autoAlpha: 0, y: 30 });
+        }
       });
-      gsap.set(stack, { y: 0 });
 
-      const totalScroll = window.innerHeight * (services.length * 1.7);
+      const totalScroll = window.innerHeight * 2.5;
 
+      // Master timeline
       const tl = gsap.timeline({
-        defaults: { ease: "power2.inOut" },
         scrollTrigger: {
           trigger: sectionRef.current,
           start: "top top",
           end: `+=${totalScroll}`,
           pin: true,
           pinSpacing: true,
-          scrub: 1,
+          scrub: 0.8,
           anticipatePin: 1,
-          invalidateOnRefresh: true,
         },
       });
 
-      let offset = 0;
-      services.forEach((s, i) => {
-        const card = cardsRef.current[i];
-        const content = contentRefs.current[i];
-        if (!card || !content) return;
+      // Card 1 (Blink) - shrink and move up as Build comes
+      tl.to(cards[0], {
+        y: -80,
+        scale: 0.9,
+        filter: "blur(2px)",
+        duration: 1,
+        ease: "power2.inOut",
+      }, 0);
+      
+      tl.to(contents[0], {
+        autoAlpha: 0,
+        y: -20,
+        duration: 0.4,
+      }, 0);
 
-        // Expand
-        tl.to(card, { height: s.expandedHeight, duration: 0.5 }, "+=0.12");
-        // Reveal content
-        tl.to(content, { autoAlpha: 1, y: 0, duration: 0.25 }, "<0.15");
-        // Hold
-        tl.to({}, { duration: 0.25 });
+      // Card 2 (Build) - slide up and overlap
+      tl.to(cards[1], {
+        y: 0,
+        scale: 1,
+        zIndex: 10,
+        duration: 1,
+        ease: "power2.inOut",
+      }, 0);
+      
+      tl.to(contents[1], {
+        autoAlpha: 1,
+        y: 0,
+        duration: 0.5,
+      }, 0.5);
 
-        if (i < services.length - 1) {
-          // Hide content + collapse before moving to next
-          tl.to(content, { autoAlpha: 0, y: 16, duration: 0.18 }, "+=0.05");
-          tl.to(card, { height: s.collapsedHeight, duration: 0.3 }, "<0.05");
+      // Card 3 (Boom) - move closer
+      tl.to(cards[2], {
+        y: 60,
+        scale: 0.98,
+        duration: 1,
+        ease: "power2.inOut",
+      }, 0);
 
-          offset += s.collapsedHeight;
-          tl.to(stack, { y: -offset, duration: 0.35 }, "+=0.08");
-        }
-      });
+      // === Second phase: Boom overlaps Build ===
+      
+      // Build shrinks and moves up
+      tl.to(cards[1], {
+        y: -80,
+        scale: 0.9,
+        filter: "blur(2px)",
+        duration: 1,
+        ease: "power2.inOut",
+      }, 1.2);
+      
+      tl.to(contents[1], {
+        autoAlpha: 0,
+        y: -20,
+        duration: 0.4,
+      }, 1.2);
+
+      // Boom slides up and overlaps
+      tl.to(cards[2], {
+        y: 0,
+        scale: 1,
+        zIndex: 20,
+        duration: 1,
+        ease: "power2.inOut",
+      }, 1.2);
+      
+      tl.to(contents[2], {
+        autoAlpha: 1,
+        y: 0,
+        duration: 0.5,
+      }, 1.7);
+
+      // Blink moves further up
+      tl.to(cards[0], {
+        y: -160,
+        scale: 0.85,
+        filter: "blur(4px)",
+        duration: 1,
+        ease: "power2.inOut",
+      }, 1.2);
 
       ScrollTrigger.refresh();
     }, sectionRef);
@@ -108,64 +163,66 @@ const ServicesStack = () => {
     <section
       ref={sectionRef}
       id="services"
-      className="py-16 px-6 min-h-screen bg-background overflow-hidden isolate relative z-30"
+      className="min-h-screen bg-background overflow-hidden isolate relative z-30 py-20"
       aria-label="Our services"
     >
-      <div className="container mx-auto max-w-4xl">
-        <h2 className="text-2xl md:text-3xl font-heading font-bold text-center mb-10">
+      <div className="container mx-auto max-w-4xl px-6">
+        <h2 className="text-3xl md:text-4xl font-heading font-bold text-center mb-16">
           Our Services
         </h2>
 
-        {/* Viewport for the pinned stack */}
-        <div
-          className="relative"
-          style={{ height: services[0]?.expandedHeight ?? 420 }}
-        >
-          <div ref={stackRef} className="will-change-transform">
-            {services.map((service, index) => (
-              <article
-                key={service.name}
-                ref={(el) => (cardsRef.current[index] = el)}
-                className={`service-card ${service.bgClass} ${service.textClass} px-6 md:px-10 py-6 relative overflow-hidden`}
-                style={{
-                  height: service.collapsedHeight,
-                  borderRadius:
-                    index === 0
-                      ? "1.5rem 1.5rem 0 0"
-                      : index === services.length - 1
-                        ? "0 0 1.5rem 1.5rem"
-                        : "0",
-                }}
-              >
-                <h3 className="text-xl md:text-2xl font-heading font-bold">
+        {/* Cards container */}
+        <div className="relative h-[450px] perspective-1000">
+          {services.map((service, index) => (
+            <div
+              key={service.name}
+              ref={(el) => (cardsRef.current[index] = el)}
+              className={`absolute inset-x-0 ${service.bgClass} ${service.textClass} rounded-3xl shadow-2xl overflow-hidden will-change-transform`}
+              style={{
+                height: "420px",
+                transformOrigin: "center top",
+              }}
+            >
+              {/* Card inner content */}
+              <div className="h-full p-8 md:p-10 flex flex-col">
+                <h3 className="text-3xl md:text-4xl font-heading font-bold mb-6">
                   {service.name}
                 </h3>
 
                 <div
                   ref={(el) => (contentRefs.current[index] = el)}
-                  className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-6 items-start"
+                  className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-8 items-center"
                 >
-                  <div className="space-y-4">
-                    <p className="text-sm md:text-base opacity-90 leading-relaxed">
+                  <div className="space-y-6">
+                    <p className="text-base md:text-lg opacity-90 leading-relaxed">
                       {service.description}
                     </p>
                     <button
-                      className="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium bg-background/20 hover:bg-background/30 transition-colors"
+                      className="inline-flex items-center justify-center rounded-xl px-6 py-3 text-sm font-semibold bg-background/20 hover:bg-background/30 backdrop-blur-sm transition-all duration-300 hover:scale-105"
                       type="button"
                     >
                       Learn More →
                     </button>
                   </div>
 
-                  <div className="w-full h-40 md:h-52 rounded-xl bg-background/10 overflow-hidden">
-                    <div className="w-full h-full bg-gradient-to-br from-background/25 to-background/5 flex items-center justify-center">
-                      <span className="text-sm opacity-50">Image + content</span>
+                  <div className="w-full h-48 md:h-64 rounded-2xl bg-background/10 backdrop-blur-sm overflow-hidden border border-white/10">
+                    <div className="w-full h-full bg-gradient-to-br from-background/30 to-background/5 flex items-center justify-center">
+                      <div className="text-center space-y-2">
+                        <div className="w-16 h-16 mx-auto rounded-xl bg-background/20 flex items-center justify-center">
+                          <span className="text-2xl">
+                            {index === 0 ? "⚡" : index === 1 ? "🔧" : "🚀"}
+                          </span>
+                        </div>
+                        <span className="text-sm opacity-60 block">
+                          {service.name} Preview
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </article>
-            ))}
-          </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </section>
