@@ -5,7 +5,6 @@ import {
   useRef,
   useState,
 } from 'react';
-import { motion } from 'framer-motion';
 
 interface ScrollExpandMediaProps {
   mediaType?: 'video' | 'image';
@@ -41,7 +40,6 @@ const ScrollExpandMedia = ({
   }, [mediaType]);
 
   useEffect(() => {
-    // Once animation is complete, don't intercept scroll events
     if (animationComplete) return;
 
     const handleWheel = (e: WheelEvent) => {
@@ -114,14 +112,18 @@ const ScrollExpandMedia = ({
     return () => window.removeEventListener('resize', checkIfMobile);
   }, []);
 
-  // When animation is complete, expand to full viewport
+  const baseWidth = isMobileState ? 300 : 300;
+  const maxWidth = isMobileState ? 950 : 1550;
+  const baseHeight = isMobileState ? 400 : 400;
+  const maxHeight = isMobileState ? 600 : 800;
+
   const mediaWidth = animationComplete 
-    ? '100vw' 
-    : `${300 + scrollProgress * (isMobileState ? 650 : 1250)}px`;
+    ? window.innerWidth 
+    : baseWidth + scrollProgress * (maxWidth - baseWidth);
   const mediaHeight = animationComplete 
-    ? '100vh' 
-    : `${400 + scrollProgress * (isMobileState ? 200 : 400)}px`;
-  const borderRadius = animationComplete ? 0 : 24;
+    ? window.innerHeight 
+    : baseHeight + scrollProgress * (maxHeight - baseHeight);
+  const borderRadius = animationComplete ? 0 : Math.max(0, 24 * (1 - scrollProgress));
   
   const textTranslateX = scrollProgress * (isMobileState ? 180 : 150);
   const textOpacity = Math.max(0, 1 - scrollProgress * 2);
@@ -139,40 +141,40 @@ const ScrollExpandMedia = ({
     >
       {/* Background image with dark overlay */}
       <div
-        className="absolute inset-0 w-full h-full bg-cover bg-center transition-opacity duration-500 z-0"
+        className="absolute inset-0 w-full h-full bg-cover bg-center z-0"
         style={{
           backgroundImage: `url(${bgImageSrc})`,
           opacity: animationComplete ? 0 : 0.4,
+          transition: 'opacity 0.5s ease',
         }}
       />
       
       {/* Dark gradient overlay for contrast */}
       <div 
-        className="absolute inset-0 z-[1] transition-opacity duration-500"
+        className="absolute inset-0 z-[1]"
         style={{
           background: 'linear-gradient(135deg, rgba(15, 12, 41, 0.85) 0%, rgba(48, 43, 99, 0.7) 50%, rgba(36, 36, 62, 0.85) 100%)',
           opacity: animationComplete ? 0 : 1,
+          transition: 'opacity 0.5s ease',
         }}
       />
 
       <div className="relative z-10 flex flex-col items-center justify-center h-full w-full">
         {/* Container for media and overlapping title */}
         <div className="relative flex flex-col items-center justify-center w-full">
-          {/* Media container - Clean edges with 24px border-radius */}
-          <motion.div
+          {/* Media container - CSS transitions instead of Framer Motion */}
+          <div
             className="relative overflow-hidden"
-            animate={{
-              width: mediaWidth,
-              height: mediaHeight,
-              borderRadius: borderRadius,
-            }}
-            transition={{ duration: 0.15, ease: 'easeOut' }}
             style={{
+              width: `${mediaWidth}px`,
+              height: `${mediaHeight}px`,
               maxWidth: animationComplete ? '100vw' : '95vw',
               maxHeight: animationComplete ? '100vh' : '90vh',
+              borderRadius: `${borderRadius}px`,
               boxShadow: animationComplete 
                 ? 'none' 
                 : '0 25px 80px -20px rgba(0, 0, 0, 0.5), 0 10px 40px -10px rgba(0, 0, 0, 0.3)',
+              transition: 'width 0.1s ease-out, height 0.1s ease-out, border-radius 0.1s ease-out, box-shadow 0.3s ease',
             }}
           >
             {mediaType === 'video' ? (
@@ -186,31 +188,27 @@ const ScrollExpandMedia = ({
                   />
                 </div>
               ) : (
-                <div className="relative w-full h-full pointer-events-none">
-                  <video
-                    src={mediaSrc}
-                    poster={posterSrc}
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                    preload="auto"
-                    className="w-full h-full object-cover"
-                    controls={false}
-                    disablePictureInPicture
-                  />
-                </div>
+                <video
+                  src={mediaSrc}
+                  poster={posterSrc}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  preload="auto"
+                  className="w-full h-full object-cover pointer-events-none"
+                  controls={false}
+                  disablePictureInPicture
+                />
               )
             ) : (
-              <div className="relative w-full h-full">
-                <img
-                  src={mediaSrc}
-                  alt={title || 'Media content'}
-                  className="w-full h-full object-cover"
-                />
-              </div>
+              <img
+                src={mediaSrc}
+                alt={title || 'Media content'}
+                className="w-full h-full object-cover"
+              />
             )}
-          </motion.div>
+          </div>
 
           {/* Title text overlay - Vertically centered, above card with blend mode */}
           <div
@@ -218,6 +216,7 @@ const ScrollExpandMedia = ({
             style={{ 
               zIndex: 30,
               opacity: textOpacity,
+              transition: 'opacity 0.1s ease',
             }}
           >
             <div 
@@ -226,30 +225,32 @@ const ScrollExpandMedia = ({
                 mixBlendMode: textBlend ? 'difference' : 'normal',
               }}
             >
-              <motion.h2
-                className="text-5xl md:text-7xl lg:text-8xl font-bold transition-none"
+              <h2
+                className="text-5xl md:text-7xl lg:text-8xl font-bold"
                 style={{ 
                   transform: `translateX(-${textTranslateX}vw)`,
                   fontFamily: "'Playfair Display', Georgia, serif",
                   fontStyle: 'italic',
                   color: 'white',
                   textShadow: '0 4px 30px rgba(0, 0, 0, 0.5)',
+                  transition: 'transform 0.1s ease-out',
                 }}
               >
                 {firstWord}
-              </motion.h2>
-              <motion.h2
-                className="text-5xl md:text-7xl lg:text-8xl font-bold transition-none"
+              </h2>
+              <h2
+                className="text-5xl md:text-7xl lg:text-8xl font-bold"
                 style={{ 
                   transform: `translateX(${textTranslateX}vw)`,
                   fontFamily: "'Playfair Display', Georgia, serif",
                   fontStyle: 'italic',
                   color: 'white',
                   textShadow: '0 4px 30px rgba(0, 0, 0, 0.5)',
+                  transition: 'transform 0.1s ease-out',
                 }}
               >
                 {restOfTitle}
-              </motion.h2>
+              </h2>
             </div>
           </div>
 
@@ -259,6 +260,7 @@ const ScrollExpandMedia = ({
             style={{ 
               zIndex: 20,
               opacity: textOpacity,
+              transition: 'opacity 0.1s ease',
             }}
           >
             {date && (
@@ -269,6 +271,7 @@ const ScrollExpandMedia = ({
                   fontFamily: "'Playfair Display', Georgia, serif",
                   fontStyle: 'italic',
                   color: 'rgba(255, 255, 255, 0.8)',
+                  transition: 'transform 0.1s ease-out',
                 }}
               >
                 {date}
@@ -280,6 +283,7 @@ const ScrollExpandMedia = ({
                 style={{ 
                   transform: `translateX(${textTranslateX}vw)`,
                   color: 'rgba(255, 255, 255, 0.6)',
+                  transition: 'transform 0.1s ease-out',
                 }}
               >
                 {scrollToExpand}
