@@ -63,7 +63,7 @@ const TrustedBy = () => {
           >
             Trusted by
           </span>
-          <div className="overflow-hidden flex-1 max-w-4xl">
+          <div className="overflow-hidden flex-1 max-w-4xl marquee-container">
             <div 
               ref={logosRef} 
               className="flex items-center gap-12 animate-marquee"
