@@ -29,18 +29,15 @@ const ScrollExpandMedia = ({
 }: ScrollExpandMediaProps) => {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [animationComplete, setAnimationComplete] = useState(false);
-  const [canScrollPast, setCanScrollPast] = useState(false);
   const [isMobileState, setIsMobileState] = useState(false);
 
   const sectionRef = useRef<HTMLDivElement>(null);
 
-  // Refs to avoid re-binding listeners on every progress tick (prevents DOM/scroll race conditions)
+  // Refs to avoid re-binding listeners on every progress tick
   const scrollProgressRef = useRef(0);
   const animationCompleteRef = useRef(false);
-  const canScrollPastRef = useRef(false);
   const touchStartYRef = useRef<number | null>(null);
   const autoScrollTimeoutRef = useRef<number | null>(null);
-  const restoreOverflowRef = useRef<{ html: string; body: string } | null>(null);
 
   const setProgress = (value: number) => {
     scrollProgressRef.current = value;
@@ -52,23 +49,14 @@ const ScrollExpandMedia = ({
     setAnimationComplete(true);
   };
 
-  const releaseAndScrollNext = () => {
-    if (canScrollPastRef.current) return;
-
-    canScrollPastRef.current = true;
-    setCanScrollPast(true);
-
-    // Restore scrolling
-    const prev = restoreOverflowRef.current;
-    if (prev) {
-      document.documentElement.style.overflow = prev.html;
-      document.body.style.overflow = prev.body;
-      restoreOverflowRef.current = null;
+  const resetAnimation = () => {
+    animationCompleteRef.current = false;
+    setAnimationComplete(false);
+    
+    if (autoScrollTimeoutRef.current) {
+      window.clearTimeout(autoScrollTimeoutRef.current);
+      autoScrollTimeoutRef.current = null;
     }
-
-    // Scroll to next section
-    const next = document.getElementById("services");
-    next?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   useEffect(() => {
@@ -76,8 +64,6 @@ const ScrollExpandMedia = ({
     setProgress(0);
     animationCompleteRef.current = false;
     setAnimationComplete(false);
-    canScrollPastRef.current = false;
-    setCanScrollPast(false);
     touchStartYRef.current = null;
 
     if (autoScrollTimeoutRef.current) {
@@ -87,57 +73,42 @@ const ScrollExpandMedia = ({
   }, [mediaType]);
 
   useEffect(() => {
-    // Lock document scrolling until we auto-scroll to the next section
-    if (canScrollPast) return;
-
+    // Lock document scrolling while hero is active
     const html = document.documentElement;
     const body = document.body;
-
-    restoreOverflowRef.current = {
-      html: html.style.overflow,
-      body: body.style.overflow,
-    };
+    const prevHtml = html.style.overflow;
+    const prevBody = body.style.overflow;
 
     html.style.overflow = "hidden";
     body.style.overflow = "hidden";
 
     return () => {
-      // Restore only if we didn't already release
-      if (!canScrollPastRef.current && restoreOverflowRef.current) {
-        html.style.overflow = restoreOverflowRef.current.html;
-        body.style.overflow = restoreOverflowRef.current.body;
-        restoreOverflowRef.current = null;
-      }
+      html.style.overflow = prevHtml;
+      body.style.overflow = prevBody;
     };
-  }, [canScrollPast]);
+  }, []);
 
   useEffect(() => {
     const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 
-    const maybeFinish = (nextProgress: number) => {
-      if (nextProgress >= 1 && !animationCompleteRef.current) {
-        markAnimationComplete();
-
-        // After it gets wide, wait 1s, then auto-scroll to the next section
-        autoScrollTimeoutRef.current = window.setTimeout(() => {
-          releaseAndScrollNext();
-        }, 1000);
-      }
-    };
-
     const handleWheel = (e: WheelEvent) => {
-      // Once released, don't intercept
-      if (canScrollPastRef.current) return;
-
-      // Never allow page scroll while locked
+      // Never allow page scroll while in hero
       e.preventDefault();
 
-      // If fully expanded, wait for the 1s auto-scroll
-      if (animationCompleteRef.current) return;
-
-      const nextProgress = clamp01(scrollProgressRef.current + e.deltaY * 0.002);
+      const delta = e.deltaY * 0.002;
+      const nextProgress = clamp01(scrollProgressRef.current + delta);
+      
+      // Scrolling up (reverse animation)
+      if (delta < 0 && animationCompleteRef.current) {
+        resetAnimation();
+      }
+      
       setProgress(nextProgress);
-      maybeFinish(nextProgress);
+      
+      // Mark complete when fully expanded
+      if (nextProgress >= 1 && !animationCompleteRef.current) {
+        markAnimationComplete();
+      }
     };
 
     const handleTouchStart = (e: TouchEvent) => {
@@ -145,21 +116,26 @@ const ScrollExpandMedia = ({
     };
 
     const handleTouchMove = (e: TouchEvent) => {
-      if (canScrollPastRef.current) return;
       if (touchStartYRef.current == null) return;
 
-      // Never allow page scroll while locked
+      // Never allow page scroll while in hero
       e.preventDefault();
-
-      // If fully expanded, wait for the 1s auto-scroll
-      if (animationCompleteRef.current) return;
 
       const touchY = e.touches[0]?.clientY ?? touchStartYRef.current;
       const deltaY = touchStartYRef.current - touchY; // positive = scrolling down
 
+      // Scrolling up (reverse animation)
+      if (deltaY < 0 && animationCompleteRef.current) {
+        resetAnimation();
+      }
+
       const nextProgress = clamp01(scrollProgressRef.current + deltaY * 0.008);
       setProgress(nextProgress);
-      maybeFinish(nextProgress);
+      
+      // Mark complete when fully expanded
+      if (nextProgress >= 1 && !animationCompleteRef.current) {
+        markAnimationComplete();
+      }
 
       touchStartYRef.current = touchY;
     };
