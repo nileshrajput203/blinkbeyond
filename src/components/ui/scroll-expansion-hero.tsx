@@ -233,44 +233,43 @@ const ScrollExpandMedia = ({
                   </div>
                 )}
 
-                {/* Overlay text centered on video */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center z-20 pointer-events-none">
-                  <div
-                    className={`flex items-center justify-center text-center gap-2 md:gap-4 flex-col ${
-                      textBlend ? 'mix-blend-difference' : 'mix-blend-normal'
-                    }`}
-                  >
-                    <motion.h2
-                      className="text-4xl md:text-5xl lg:text-7xl font-bold text-white drop-shadow-lg transition-none"
+                <div className="flex flex-col items-center text-center relative z-10 mt-4 transition-none">
+                  {date && (
+                    <p
+                      className="text-2xl text-primary-foreground/80"
                       style={{ transform: `translateX(-${textTranslateX}vw)` }}
                     >
-                      {firstWord}
-                    </motion.h2>
-                    <motion.h2
-                      className="text-4xl md:text-5xl lg:text-7xl font-bold text-center text-white drop-shadow-lg transition-none"
-                      style={{ transform: `translateX(${textTranslateX}vw)` }}
-                    >
-                      {restOfTitle}
-                    </motion.h2>
-                  </div>
-                  
-                  {date && (
-                    <motion.p
-                      className="text-lg md:text-2xl text-white/90 mt-4 drop-shadow-md"
-                      style={{ transform: `translateX(-${textTranslateX * 0.5}vw)` }}
-                    >
                       {date}
-                    </motion.p>
+                    </p>
                   )}
                   {scrollToExpand && (
-                    <motion.p
-                      className="text-white/70 font-medium text-center mt-2 text-sm md:text-base"
-                      style={{ transform: `translateX(${textTranslateX * 0.5}vw)` }}
+                    <p
+                      className="text-primary-foreground/80 font-medium text-center"
+                      style={{ transform: `translateX(${textTranslateX}vw)` }}
                     >
                       {scrollToExpand}
-                    </motion.p>
+                    </p>
                   )}
                 </div>
+              </div>
+
+              <div
+                className={`flex items-center justify-center text-center gap-4 w-full relative z-10 transition-none flex-col mt-6 ${
+                  textBlend ? 'mix-blend-difference' : 'mix-blend-normal'
+                }`}
+              >
+                <motion.h2
+                  className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground transition-none"
+                  style={{ transform: `translateX(-${textTranslateX}vw)` }}
+                >
+                  {firstWord}
+                </motion.h2>
+                <motion.h2
+                  className="text-4xl md:text-5xl lg:text-6xl font-bold text-center text-foreground transition-none"
+                  style={{ transform: `translateX(${textTranslateX}vw)` }}
+                >
+                  {restOfTitle}
+                </motion.h2>
               </div>
             </div>
 
