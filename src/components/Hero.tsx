@@ -11,9 +11,9 @@ const galleryItems: GalleryItem[] = [
 
 const Hero = () => {
   return (
-    <section className="relative h-screen w-full overflow-hidden flex flex-col md:flex-row">
-      {/* Background Image Half */}
-      <div className="relative w-full md:w-1/2 h-1/2 md:h-full">
+    <section className="relative h-screen w-full overflow-hidden flex flex-col">
+      {/* Background Image Top Half */}
+      <div className="relative w-full h-1/2">
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
@@ -29,8 +29,8 @@ const Hero = () => {
         </div>
       </div>
 
-      {/* Circular Gallery Half */}
-      <div className="relative w-full md:w-1/2 h-1/2 md:h-full bg-background">
+      {/* Circular Gallery Bottom Half */}
+      <div className="relative w-full h-1/2 bg-background">
         <CircularGallery
           items={galleryItems}
           bend={3}
