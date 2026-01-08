@@ -29,7 +29,7 @@ const Hero = () => {
           bend={3}
           borderRadius={0.05}
           autoRotate={true}
-          autoRotateSpeed={0.015}
+          autoRotateSpeed={0.04}
           className="h-full w-full text-foreground font-bold text-xl"
         />
       </div>
