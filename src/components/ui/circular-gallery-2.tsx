@@ -401,11 +401,11 @@ class Media {
         ).uViewportSizes.value = [this.viewport.width, this.viewport.height];
       }
     }
-    this.scale = this.screen.height / 900;
+    this.scale = this.screen.height / 1500;
     this.plane.scale.y =
-      (this.viewport.height * (1200 * this.scale)) / this.screen.height;
+      (this.viewport.height * (900 * this.scale)) / this.screen.height;
     this.plane.scale.x =
-      (this.viewport.width * (1000 * this.scale)) / this.screen.width;
+      (this.viewport.width * (700 * this.scale)) / this.screen.width;
     this.program.uniforms.uPlaneSizes.value = [
       this.plane.scale.x,
       this.plane.scale.y,
