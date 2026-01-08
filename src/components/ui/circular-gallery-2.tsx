@@ -534,7 +534,7 @@ class App {
     ];
 
     const galleryItems = items && items.length > 0 ? items : defaultItems;
-    this.mediasImages = [...galleryItems, ...galleryItems];
+    this.mediasImages = [...galleryItems, ...galleryItems, ...galleryItems, ...galleryItems];
     this.medias = this.mediasImages.map((data, index) => {
       return new Media({
         geometry: this.planeGeometry,

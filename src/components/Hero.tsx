@@ -12,15 +12,8 @@ const galleryItems: GalleryItem[] = [
 const Hero = () => {
   return (
     <section className="relative h-screen w-full overflow-hidden flex flex-col">
-      {/* Background Image Top Half */}
-      <div className="relative w-full h-1/2">
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{
-            backgroundImage: `url('https://images.unsplash.com/photo-1557682250-33bd709cbe85?w=1920&auto=format&fit=crop')`,
-          }}
-        />
-        <div className="absolute inset-0 bg-black/30" />
+      {/* Solid Blue Top Half */}
+      <div className="relative w-full h-1/2 bg-blue-600">
         <div className="relative z-10 h-full flex items-center justify-center p-8">
           <div className="text-center text-white">
             <h1 className="text-4xl md:text-6xl font-bold mb-4">Digital Excellence</h1>
@@ -30,13 +23,7 @@ const Hero = () => {
       </div>
 
       {/* Circular Gallery Bottom Half */}
-      <div className="relative w-full h-1/2">
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{
-            backgroundImage: `url('https://images.unsplash.com/photo-1557682250-33bd709cbe85?w=1920&auto=format&fit=crop')`,
-          }}
-        />
+      <div className="relative w-full h-1/2 bg-blue-600">
         <CircularGallery
           items={galleryItems}
           bend={3}
