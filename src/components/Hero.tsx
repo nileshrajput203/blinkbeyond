@@ -30,7 +30,13 @@ const Hero = () => {
       </div>
 
       {/* Circular Gallery Bottom Half */}
-      <div className="relative w-full h-1/2 bg-background">
+      <div className="relative w-full h-1/2">
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{
+            backgroundImage: `url('https://images.unsplash.com/photo-1557682250-33bd709cbe85?w=1920&auto=format&fit=crop')`,
+          }}
+        />
         <CircularGallery
           items={galleryItems}
           bend={3}
