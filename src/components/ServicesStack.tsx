@@ -47,7 +47,7 @@ const ServicesStack = () => {
       // Initial state - stack cards with offset, first card expanded
       cards.forEach((card, i) => {
         gsap.set(card, {
-          y: i * 60, // Stack offset
+          y: i * 80, // Stack offset
           zIndex: services.length - i,
           scale: 1 - i * 0.02,
         });
@@ -70,22 +70,22 @@ const ServicesStack = () => {
           end: `+=${totalScroll}`,
           pin: pinRef.current,
           pinSpacing: true,
-          scrub: 0.8,
+          scrub: 0.5,
           anticipatePin: 1,
         },
       });
 
       const st = tl.scrollTrigger;
 
-      // Card 1 (Blink) - shrink and move up as Build comes
+      // Card 1 (Blink) - parallax up with slight rotation
       tl.to(
         cards[0],
         {
-          y: -80,
-          scale: 0.9,
-          filter: "blur(2px)",
+          y: -120,
+          scale: 0.92,
+          rotateX: 5,
           duration: 1,
-          ease: "power2.inOut",
+          ease: "none",
         },
         0
       );
@@ -94,13 +94,13 @@ const ServicesStack = () => {
         contents[0],
         {
           autoAlpha: 0,
-          y: -20,
+          y: -30,
           duration: 0.4,
         },
         0
       );
 
-      // Card 2 (Build) - slide up and overlap
+      // Card 2 (Build) - parallax slide up and overlap
       tl.to(
         cards[1],
         {
@@ -108,7 +108,7 @@ const ServicesStack = () => {
           scale: 1,
           zIndex: 10,
           duration: 1,
-          ease: "power2.inOut",
+          ease: "none",
         },
         0
       );
@@ -123,29 +123,29 @@ const ServicesStack = () => {
         0.5
       );
 
-      // Card 3 (Boom) - move closer
+      // Card 3 (Boom) - parallax move closer
       tl.to(
         cards[2],
         {
-          y: 60,
+          y: 80,
           scale: 0.98,
           duration: 1,
-          ease: "power2.inOut",
+          ease: "none",
         },
         0
       );
 
       // === Second phase: Boom overlaps Build ===
 
-      // Build shrinks and moves up
+      // Build parallax up with rotation
       tl.to(
         cards[1],
         {
-          y: -80,
-          scale: 0.9,
-          filter: "blur(2px)",
+          y: -120,
+          scale: 0.92,
+          rotateX: 5,
           duration: 1,
-          ease: "power2.inOut",
+          ease: "none",
         },
         1.2
       );
@@ -154,13 +154,13 @@ const ServicesStack = () => {
         contents[1],
         {
           autoAlpha: 0,
-          y: -20,
+          y: -30,
           duration: 0.4,
         },
         1.2
       );
 
-      // Boom slides up and overlaps
+      // Boom parallax slides up and overlaps
       tl.to(
         cards[2],
         {
@@ -168,7 +168,7 @@ const ServicesStack = () => {
           scale: 1,
           zIndex: 20,
           duration: 1,
-          ease: "power2.inOut",
+          ease: "none",
         },
         1.2
       );
@@ -183,15 +183,15 @@ const ServicesStack = () => {
         1.7
       );
 
-      // Blink moves further up
+      // Blink parallax continues up
       tl.to(
         cards[0],
         {
-          y: -160,
-          scale: 0.85,
-          filter: "blur(4px)",
+          y: -200,
+          scale: 0.88,
+          rotateX: 8,
           duration: 1,
-          ease: "power2.inOut",
+          ease: "none",
         },
         1.2
       );
@@ -238,14 +238,15 @@ const ServicesStack = () => {
         </div>
 
         {/* Cards container */}
-        <div className="relative h-[500px] perspective-1000">
+        <div className="relative h-[600px]" style={{ perspective: "1200px" }}>
           {services.map((service, index) => (
             <div
               key={service.name}
               ref={(el) => (cardsRef.current[index] = el)}
-              className={`absolute inset-x-0 ${service.bgClass} ${service.textClass} rounded-3xl shadow-2xl overflow-hidden will-change-transform`}
+              className={`absolute inset-x-0 ${service.bgClass} ${service.textClass} rounded-3xl shadow-2xl will-change-transform`}
               style={{
-                height: "480px",
+                height: "520px",
+                transformStyle: "preserve-3d",
                 transformOrigin: "center top",
               }}
             >
