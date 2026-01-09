@@ -213,11 +213,11 @@ const ServicesStack = () => {
     <section
       ref={sectionRef}
       id="services"
-      className="min-h-screen bg-background overflow-hidden isolate relative z-30 py-20"
+      className="min-h-screen bg-background isolate relative z-30 py-20"
       aria-label="Our services"
     >
       {/* Background elements */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-service-blink/10 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-40 right-10 w-96 h-96 bg-service-build/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-service-boom/5 rounded-full blur-3xl" />
@@ -225,7 +225,7 @@ const ServicesStack = () => {
       
       <div ref={pinRef} className="container mx-auto max-w-5xl px-6 relative z-10">
         {/* Section header */}
-        <div className="text-center mb-20">
+        <div className="text-center mb-16">
           <span className="inline-block text-sm font-medium text-muted-foreground mb-4 tracking-widest uppercase">
             What We Do
           </span>
@@ -237,15 +237,15 @@ const ServicesStack = () => {
           </p>
         </div>
 
-        {/* Cards container */}
-        <div className="relative h-[600px]" style={{ perspective: "1200px" }}>
+        {/* Cards container - increased height to show full cards */}
+        <div className="relative h-[700px]" style={{ perspective: "1200px" }}>
           {services.map((service, index) => (
             <div
               key={service.name}
               ref={(el) => (cardsRef.current[index] = el)}
               className={`absolute inset-x-0 ${service.bgClass} ${service.textClass} rounded-3xl shadow-2xl will-change-transform`}
               style={{
-                height: "520px",
+                height: "480px",
                 transformStyle: "preserve-3d",
                 transformOrigin: "center top",
               }}
