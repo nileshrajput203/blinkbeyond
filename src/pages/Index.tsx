@@ -4,6 +4,7 @@ import Hero from "@/components/Hero";
 import ServicesStack from "@/components/ServicesStack";
 import AboutServices from "@/components/AboutServices";
 import OurWork from "@/components/OurWork";
+import ComponentShowcase from "@/components/ComponentShowcase";
 import Footer from "@/components/Footer";
 import Preloader from "@/components/Preloader";
 import useSmoothScroll from "@/hooks/useSmoothScroll";
@@ -24,6 +25,7 @@ const Index = () => {
               <Hero />
               <ServicesStack />
               <AboutServices />
+              <ComponentShowcase />
               <OurWork />
             </main>
             <Footer />
