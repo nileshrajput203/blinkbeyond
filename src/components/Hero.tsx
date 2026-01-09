@@ -1,4 +1,5 @@
 import { CircularGallery, type GalleryItem } from "@/components/ui/circular-gallery-2";
+import mainBanner from "@/assets/main_banner.jpg";
 
 const galleryItems: GalleryItem[] = [
   { image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=600&fit=crop", text: "Analytics" },
@@ -12,18 +13,19 @@ const galleryItems: GalleryItem[] = [
 const Hero = () => {
   return (
     <section className="relative h-screen w-full overflow-hidden flex flex-col">
-      {/* Solid Blue Top Half */}
-      <div className="relative w-full h-1/2 bg-blue-600">
-        <div className="relative z-10 h-full flex items-center justify-center p-8">
-          <div className="text-center text-white">
-            <h1 className="text-4xl md:text-6xl font-bold mb-4">Digital Excellence</h1>
-            <p className="text-lg md:text-xl opacity-90">BlinkBeyond Agency</p>
-          </div>
-        </div>
+      {/* Banner Image Top Half */}
+      <div 
+        className="relative w-full h-1/2 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url(${mainBanner})` }}
+      >
+        <div className="absolute inset-0 bg-black/10" />
       </div>
 
       {/* Circular Gallery Bottom Half */}
-      <div className="relative w-full h-1/2 bg-blue-600">
+      <div 
+        className="relative w-full h-1/2 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url(${mainBanner})` }}
+      >
         <CircularGallery
           items={galleryItems}
           bend={3}
